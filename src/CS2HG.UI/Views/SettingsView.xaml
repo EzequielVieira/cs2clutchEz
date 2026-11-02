@@ -1,0 +1,119 @@
+<UserControl x:Class="CS2HG.UI.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:CS2HG.UI">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,26,32,24" MaxWidth="1200" HorizontalAlignment="Left">
+            <DockPanel Margin="0,0,0,16">
+                <Button DockPanel.Dock="Right" Style="{StaticResource AccentButton}" Content="{l:Tr settings.save}" Command="{Binding SaveCommand}" VerticalAlignment="Top" />
+                <StackPanel>
+                    <TextBlock Text="{l:Tr nav.settings}" Style="{StaticResource PageTitle}" />
+                    <TextBlock Text="{l:Tr settings.subtitle}" Style="{StaticResource PageSubtitle}" />
+                </StackPanel>
+            </DockPanel>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Tr settings.language}" Style="{StaticResource SectionTitle}" />
+                            <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding Language}" AutomationProperties.Name="{l:Tr settings.language}" />
+                            <TextBlock Text="{l:Tr settings.languageHint}" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Tr settings.folders}" Style="{StaticResource SectionTitle}" />
+                            <TextBlock Text="{l:Tr settings.rootFolder}" Style="{StaticResource FieldLabel}" />
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="..." Command="{Binding BrowseRootCommand}" Margin="8,0,0,0" />
+                                <Button DockPanel.Dock="Right" Content="{l:Tr common.open}" Command="{Binding OpenRootCommand}" Margin="8,0,0,0" />
+                                <TextBox Text="{Binding RootFolder}" />
+                            </DockPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Style="{StaticResource GhostButton}" Content="{l:Tr settings.openLogs}" Command="{Binding OpenLogsCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="FFmpeg" Style="{StaticResource SectionTitle}" />
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Content="..." Command="{Binding BrowseFfmpegCommand}" Margin="8,0,0,0" />
+                                <TextBox Text="{Binding FfmpegPath}" />
+                            </DockPanel>
+                            <Button Style="{StaticResource GhostButton}" Content="{l:Tr settings.downloadFfmpeg}" Command="{Binding DownloadFfmpegCommand}" HorizontalAlignment="Left" Margin="0,10,0,0" />
+                            <ProgressBar Value="{Binding DownloadProgress}" Maximum="100" Margin="0,8,0,0" Visibility="{Binding Downloading, Converter={StaticResource BoolToVis}}" />
+                            <TextBlock Style="{StaticResource Muted}" Margin="0,8,0,0" Text="{l:Tr settings.ffmpegHint}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Tr settings.about}" Style="{StaticResource SectionTitle}" />
+                            <TextBlock Style="{StaticResource Muted}" Text="{l:Tr settings.aboutText}" />
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <Button Style="{StaticResource GhostButton}" Content="{Binding Website}" Command="{Binding OpenWebsiteCommand}" />
+                                <Button Style="{StaticResource GhostButton}" Content="GitHub" Command="{Binding OpenGitHubCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2">
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="Counter-Strike 2" Style="{StaticResource SectionTitle}" />
+                            <TextBlock Text="{l:Tr settings.steamFolder}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding SteamFolder}" />
+                            <TextBlock Text="{l:Tr settings.gameFolder}" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding GameFolder}" />
+                            <Grid Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="8" /><ColumnDefinition /><ColumnDefinition Width="8" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                                <StackPanel><TextBlock Text="{l:Tr settings.captureWidth}" Style="{StaticResource FieldLabel}" /><TextBox Text="{Binding CaptureWidth}" /></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="{l:Tr settings.captureHeight}" Style="{StaticResource FieldLabel}" /><TextBox Text="{Binding CaptureHeight}" /></StackPanel>
+                                <StackPanel Grid.Column="4"><TextBlock Text="{l:Tr settings.captureFps}" Style="{StaticResource FieldLabel}" /><TextBox Text="{Binding CaptureFps}" /></StackPanel>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="8" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                                <StackPanel><TextBlock Text="{l:Tr settings.gsiPort}" Style="{StaticResource FieldLabel}" /><TextBox Text="{Binding GsiPort}" /></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="{l:Tr settings.settle}" Style="{StaticResource FieldLabel}" /><TextBox Text="{Binding SettleSeconds}" /></StackPanel>
+                            </Grid>
+                            <CheckBox Content="{l:Tr settings.closeGame}" IsChecked="{Binding CloseGameWhenDone}" Margin="0,12,0,0" />
+                            <CheckBox Content="{l:Tr settings.cleanupBinds}" IsChecked="{Binding CleanupBinds}" Margin="0,6,0,0" />
+                            <Button Style="{StaticResource GhostButton}" Content="{l:Tr settings.restoreCs2}" Command="{Binding RestoreCs2ConfigCommand}" HorizontalAlignment="Left" Margin="0,12,0,0" />
+                            <TextBlock Style="{StaticResource Muted}" Margin="0,8,0,0" TextWrapping="Wrap" Text="{l:Tr settings.cs2Hint}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Tr settings.detection}" Style="{StaticResource SectionTitle}" />
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition /><ColumnDefinition Width="8" /><ColumnDefinition /></Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions><RowDefinition /><RowDefinition /><RowDefinition /></Grid.RowDefinitions>
+                                <StackPanel><TextBlock Text="{l:Tr settings.quickGap}" Style="{StaticResource FieldLabel}" /><TextBox Text="{Binding QuickKillGap}" /></StackPanel>
+                                <StackPanel Grid.Column="2"><TextBlock Text="{l:Tr settings.streakWindow}" Style="{StaticResource FieldLabel}" /><TextBox Text="{Binding StreakWindow}" /></StackPanel>
+                                <StackPanel Grid.Row="1"><TextBlock Text="{l:Tr settings.highDamage}" Style="{StaticResource FieldLabel}" /><TextBox Text="{Binding HighDamage}" /></StackPanel>
+                                <StackPanel Grid.Row="1" Grid.Column="2"><TextBlock Text="{l:Tr settings.utilityDamage}" Style="{StaticResource FieldLabel}" /><TextBox Text="{Binding UtilityDamage}" /></StackPanel>
+                                <StackPanel Grid.Row="2"><TextBlock Text="{l:Tr settings.minScore}" Style="{StaticResource FieldLabel}" /><TextBox Text="{Binding MinimumScore}" /></StackPanel>
+                                <StackPanel Grid.Row="2" Grid.Column="2"><TextBlock Text="{l:Tr settings.mergeGap}" Style="{StaticResource FieldLabel}" /><TextBox Text="{Binding MergeGap}" /></StackPanel>
+                            </Grid>
+                            <Expander Header="{l:Tr settings.rules}" Margin="0,12,0,0">
+                                <TextBlock Text="{Binding DetectorsHelp}" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                            </Expander>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

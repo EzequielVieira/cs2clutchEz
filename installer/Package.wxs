@@ -1,0 +1,71 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package Name="cs2clutchEz"
+           Manufacturer="cs2clutchEz"
+           Version="1.0.0.0"
+           UpgradeCode="6F2B8C7E-3D4A-4E8B-9B61-2A7C0E5D9F13"
+           Scope="perMachine"
+           Language="1046"
+           Codepage="1252">
+    <SummaryInformation Description="cs2clutchEz - Counter-Strike 2 demo highlights to video" />
+    <MajorUpgrade DowngradeErrorMessage="A newer version of cs2clutchEz is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="AppIcon" SourceFile="$(AssetsDir)\app.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+    <Property Id="ARPURLINFOABOUT" Value="https://cs2clutch.ez.com.br" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/EzequielVieira/cs2clutchEz" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="cs2clutchEz" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="AppMenuFolder" Name="cs2clutchEz" />
+    </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder" />
+
+    <Feature Id="Main" Title="cs2clutchEz" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+      <ComponentRef Id="UrlProtocol" />
+    </Feature>
+
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
+  </Package>
+
+  <Fragment>
+    <!-- Everything published to dist/app (self-contained .NET 10 runtime, app, CLI and FFmpeg). -->
+    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">
+      <Files Include="$(AppDir)\**" />
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <Component Id="StartMenuShortcut" Directory="AppMenuFolder" Guid="2C1E3F04-8B7A-4C59-A2D1-6E0F9B3A4C77">
+      <Shortcut Id="AppStartMenu" Name="cs2clutchEz" Description="CS2 demo highlights to video"
+                Target="[INSTALLFOLDER]cs2clutchEz.exe" WorkingDirectory="INSTALLFOLDER" Icon="AppIcon" />
+      <Shortcut Id="ReadmeStartMenu" Name="README" Target="[INSTALLFOLDER]README.md" />
+      <RemoveFolder Id="RemoveAppMenuFolder" On="uninstall" />
+      <RegistryValue Root="HKLM" Key="Software\cs2clutchEz" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+    <Component Id="DesktopShortcut" Directory="DesktopFolder" Guid="9A4D2B61-0C3E-4F7A-8D15-3B6E1C2F5A90">
+      <Shortcut Id="AppDesktop" Name="cs2clutchEz" Target="[INSTALLFOLDER]cs2clutchEz.exe" WorkingDirectory="INSTALLFOLDER" Icon="AppIcon" />
+      <RegistryValue Root="HKLM" Key="Software\cs2clutchEz" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+    <!-- cs2clutchez://CSGO-xxxxx-... links (e.g. from cs2clutch.ez.com.br) open the match in the app. -->
+    <Component Id="UrlProtocol" Directory="INSTALLFOLDER" Guid="B7E0C2A9-5F41-4D3B-9C86-1A2F7D4E6B05">
+      <RegistryKey Root="HKCR" Key="cs2clutchez">
+        <RegistryValue Type="string" Value="URL:cs2clutchEz" KeyPath="yes" />
+        <RegistryValue Name="URL Protocol" Type="string" Value="" />
+        <RegistryKey Key="DefaultIcon">
+          <RegistryValue Type="string" Value="&quot;[INSTALLFOLDER]cs2clutchEz.exe&quot;,0" />
+        </RegistryKey>
+        <RegistryKey Key="shell\open\command">
+          <RegistryValue Type="string" Value="&quot;[INSTALLFOLDER]cs2clutchEz.exe&quot; &quot;%1&quot;" />
+        </RegistryKey>
+      </RegistryKey>
+    </Component>
+  </Fragment>
+</Wix>

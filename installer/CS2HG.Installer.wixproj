@@ -1,0 +1,13 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <PropertyGroup>
+    <OutputName>cs2clutchEz-1.0.0-x64</OutputName>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <AppDir Condition="'$(AppDir)' == ''">$(MSBuildThisFileDirectory)..\dist\app</AppDir>
+    <DefineConstants>AppDir=$(AppDir);AssetsDir=$(MSBuildThisFileDirectory)..\src\CS2HG.UI\Assets</DefineConstants>
+    <!-- ICE38/43/57: per-machine package whose shortcuts go to the All Users Start menu/desktop, keyed in HKLM. -->
+    <SuppressIces>ICE61;ICE38;ICE43;ICE57</SuppressIces>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+  </ItemGroup>
+</Project>

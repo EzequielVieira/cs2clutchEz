@@ -1,0 +1,201 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Palette -->
+    <Color x:Key="BgColor">#0F1115</Color>
+    <Color x:Key="SidebarColor">#14171C</Color>
+    <Color x:Key="CardColor">#1A1E25</Color>
+    <Color x:Key="CardHoverColor">#222731</Color>
+    <Color x:Key="BorderColor">#2A303B</Color>
+    <Color x:Key="AccentColor">#FF8A2B</Color>
+    <Color x:Key="AccentDarkColor">#E2621A</Color>
+    <Color x:Key="TextColor">#ECEFF4</Color>
+    <Color x:Key="MutedColor">#8A93A3</Color>
+    <Color x:Key="SuccessColor">#3DDC84</Color>
+    <Color x:Key="WarningColor">#FFC247</Color>
+    <Color x:Key="DangerColor">#FF5C5C</Color>
+    <Color x:Key="InfoColor">#5AB0FF</Color>
+
+    <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgColor}" />
+    <SolidColorBrush x:Key="SidebarBrush" Color="{StaticResource SidebarColor}" />
+    <SolidColorBrush x:Key="CardBrush" Color="{StaticResource CardColor}" />
+    <SolidColorBrush x:Key="CardHoverBrush" Color="{StaticResource CardHoverColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="MutedBrush" Color="{StaticResource MutedColor}" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+    <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}" />
+    <LinearGradientBrush x:Key="AccentGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="{StaticResource AccentColor}" />
+        <GradientStop Offset="1" Color="{StaticResource AccentDarkColor}" />
+    </LinearGradientBrush>
+
+    <!-- Fluent accent overrides (orange instead of the Windows accent color) -->
+    <Color x:Key="SystemAccentColor">#FF8A2B</Color>
+    <Color x:Key="SystemAccentColorLight1">#FFA052</Color>
+    <Color x:Key="SystemAccentColorLight2">#FFB678</Color>
+    <Color x:Key="SystemAccentColorLight3">#FFCB9E</Color>
+    <Color x:Key="SystemAccentColorDark1">#E2621A</Color>
+    <Color x:Key="SystemAccentColorDark2">#B84E12</Color>
+    <Color x:Key="SystemAccentColorDark3">#8E3B0C</Color>
+    <Color x:Key="{x:Static SystemColors.AccentColorKey}">#FF8A2B</Color>
+    <Color x:Key="{x:Static SystemColors.AccentColorLight1Key}">#FFA052</Color>
+    <Color x:Key="{x:Static SystemColors.AccentColorLight2Key}">#FFB678</Color>
+    <Color x:Key="{x:Static SystemColors.AccentColorLight3Key}">#FFCB9E</Color>
+    <Color x:Key="{x:Static SystemColors.AccentColorDark1Key}">#E2621A</Color>
+    <Color x:Key="{x:Static SystemColors.AccentColorDark2Key}">#B84E12</Color>
+    <Color x:Key="{x:Static SystemColors.AccentColorDark3Key}">#8E3B0C</Color>
+    <SolidColorBrush x:Key="{x:Static SystemColors.AccentColorBrushKey}" Color="#FF8A2B" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.AccentColorLight1BrushKey}" Color="#FFA052" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.AccentColorLight2BrushKey}" Color="#FFB678" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.AccentColorLight3BrushKey}" Color="#FFCB9E" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.AccentColorDark1BrushKey}" Color="#E2621A" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.AccentColorDark2BrushKey}" Color="#B84E12" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.AccentColorDark3BrushKey}" Color="#8E3B0C" />
+    <SolidColorBrush x:Key="AccentFillColorDefaultBrush" Color="#FF8A2B" />
+    <SolidColorBrush x:Key="AccentFillColorSecondaryBrush" Color="#E6FF8A2B" />
+    <SolidColorBrush x:Key="AccentFillColorTertiaryBrush" Color="#CCFF8A2B" />
+    <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="#FFB678" />
+    <SolidColorBrush x:Key="AccentTextFillColorSecondaryBrush" Color="#FFCB9E" />
+    <SolidColorBrush x:Key="AccentTextFillColorTertiaryBrush" Color="#FFA052" />
+    <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="#111111" />
+
+    <Style x:Key="CenterText" TargetType="TextBlock">
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+
+    <!-- Typography -->
+    <Style x:Key="PageTitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+    <Style x:Key="PageSubtitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style x:Key="SectionTitle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Margin" Value="0,0,0,10" />
+    </Style>
+    <Style x:Key="Muted" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style x:Key="BigNumber" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+    </Style>
+
+    <!-- Cards -->
+    <Style x:Key="Card" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource CardBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="18" />
+        <Setter Property="Margin" Value="0,0,0,14" />
+    </Style>
+    <Style x:Key="Chip" TargetType="Border">
+        <Setter Property="Background" Value="#262B35" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="8,2" />
+        <Setter Property="Margin" Value="0,0,6,4" />
+    </Style>
+
+    <!-- Buttons -->
+    <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="{StaticResource AccentGradient}" />
+        <Setter Property="Foreground" Value="#101010" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Padding" Value="18,8" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="b" Property="Opacity" Value="0.88" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="b" Property="Opacity" Value="0.35" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="Margin" Value="0,0,8,0" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="Margin" Value="2,0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <!-- Sidebar navigation -->
+    <Style x:Key="NavButton" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Margin" Value="10,2" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="bg" Background="Transparent" CornerRadius="8" Padding="12,9">
+                        <Grid>
+                            <Border x:Name="bar" Width="3" HorizontalAlignment="Left" Margin="-12,2,0,2" CornerRadius="2"
+                                    Background="{StaticResource AccentBrush}" Visibility="Collapsed" />
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{TemplateBinding Tag}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16"
+                                           Width="28" VerticalAlignment="Center" />
+                                <ContentPresenter VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bg" Property="Background" Value="#1D222A" />
+                            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="bg" Property="Background" Value="#232833" />
+                            <Setter TargetName="bar" Property="Visibility" Value="Visible" />
+                            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="FieldLabel" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Margin" Value="0,8,0,4" />
+    </Style>
+
+    <Style TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}">
+        <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+        <Setter Property="Height" Value="6" />
+    </Style>
+</ResourceDictionary>

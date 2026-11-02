@@ -1,0 +1,119 @@
+<Window x:Class="CS2HG.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:CS2HG.UI.ViewModels"
+        xmlns:v="clr-namespace:CS2HG.UI.Views"
+        xmlns:core="clr-namespace:CS2HG.Core;assembly=CS2HG.Core"
+        xmlns:l="clr-namespace:CS2HG.UI"
+        Title="{x:Static core:Brand.Name}" Height="860" Width="1440" MinHeight="640" MinWidth="1100"
+        WindowStartupLocation="CenterScreen" Background="{StaticResource BgBrush}"
+        Icon="Assets/app.ico" AllowDrop="True" Drop="OnDrop" DragOver="OnDragOver">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:HomeViewModel}"><v:HomeView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AnalysisViewModel}"><v:AnalysisView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:HighlightsViewModel}"><v:HighlightsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ExportViewModel}"><v:ExportView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:QueueViewModel}"><v:QueueView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LibraryViewModel}"><v:LibraryView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><v:SettingsView /></DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="232" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="34" />
+        </Grid.RowDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.RowSpan="2" Background="{StaticResource SidebarBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0" ToggleButton.Checked="OnNavChecked">
+            <DockPanel>
+                <Image DockPanel.Dock="Top" Source="{StaticResource LogoImage}" Width="186" Stretch="Uniform" HorizontalAlignment="Left"
+                       Margin="22,26,0,28" ToolTip="{x:Static core:Brand.Name}" AutomationProperties.Name="{x:Static core:Brand.Name}" />
+                <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,12">
+                    <RadioButton Style="{StaticResource NavButton}" Tag="&#xE713;" Content="{l:Tr nav.settings}" GroupName="nav"
+                                 Command="{Binding NavigateCommand}" CommandParameter="Settings"
+                                 IsChecked="{Binding CurrentPageKey, Mode=OneWay, Converter={x:Static v:EqualsConverter.Instance}, ConverterParameter=Settings}" />
+                    <TextBlock Text="{Binding AppVersion}" Margin="24,8,0,0" FontSize="11" Foreground="{StaticResource MutedBrush}" />
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock Text="{l:Tr nav.sectionLibrary}" Margin="24,0,0,6" FontSize="10" FontWeight="Bold" Foreground="#5E6675" />
+                    <RadioButton Style="{StaticResource NavButton}" Tag="&#xE80F;" Content="{l:Tr nav.home}" GroupName="nav"
+                                 Command="{Binding NavigateCommand}" CommandParameter="Home"
+                                 IsChecked="{Binding CurrentPageKey, Mode=OneWay, Converter={x:Static v:EqualsConverter.Instance}, ConverterParameter=Home}" />
+                    <RadioButton Style="{StaticResource NavButton}" Tag="&#xE9D9;" Content="{l:Tr nav.analysis}" GroupName="nav"
+                                 Command="{Binding NavigateCommand}" CommandParameter="Analysis"
+                                 IsChecked="{Binding CurrentPageKey, Mode=OneWay, Converter={x:Static v:EqualsConverter.Instance}, ConverterParameter=Analysis}" />
+                    <RadioButton Style="{StaticResource NavButton}" Tag="&#xE734;" Content="{l:Tr nav.highlights}" GroupName="nav"
+                                 Command="{Binding NavigateCommand}" CommandParameter="Highlights"
+                                 IsChecked="{Binding CurrentPageKey, Mode=OneWay, Converter={x:Static v:EqualsConverter.Instance}, ConverterParameter=Highlights}" />
+                    <RadioButton Style="{StaticResource NavButton}" Tag="&#xE78C;" Content="{l:Tr nav.export}" GroupName="nav"
+                                 Command="{Binding NavigateCommand}" CommandParameter="Export"
+                                 IsChecked="{Binding CurrentPageKey, Mode=OneWay, Converter={x:Static v:EqualsConverter.Instance}, ConverterParameter=Export}" />
+                    <TextBlock Text="{l:Tr nav.sectionVideos}" Margin="24,16,0,6" FontSize="10" FontWeight="Bold" Foreground="#5E6675" />
+                    <RadioButton Style="{StaticResource NavButton}" Tag="&#xE896;" Content="{l:Tr nav.queue}" GroupName="nav"
+                                 Command="{Binding NavigateCommand}" CommandParameter="Queue"
+                                 IsChecked="{Binding CurrentPageKey, Mode=OneWay, Converter={x:Static v:EqualsConverter.Instance}, ConverterParameter=Queue}" />
+                    <RadioButton Style="{StaticResource NavButton}" Tag="&#xE8B2;" Content="{l:Tr nav.clips}" GroupName="nav"
+                                 Command="{Binding NavigateCommand}" CommandParameter="Library"
+                                 IsChecked="{Binding CurrentPageKey, Mode=OneWay, Converter={x:Static v:EqualsConverter.Instance}, ConverterParameter=Library}" />
+
+                    <!-- Mini queue indicator -->
+                    <Border Margin="14,22,14,0" Padding="12" CornerRadius="8" Background="#1B1F27"
+                            Visibility="{Binding QueueActive, Converter={StaticResource BoolToVis}}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Tr sidebar.rendering}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" />
+                            <TextBlock Text="{Binding QueueText}" FontSize="11" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,4,0,8" />
+                            <ProgressBar Value="{Binding QueueProgress, Mode=OneWay}" Maximum="100" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Content -->
+        <Grid Grid.Column="1">
+            <ContentControl Content="{Binding CurrentPage}" Focusable="False" />
+
+            <!-- Notification (InfoBar) -->
+            <Border VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,16,24,0" MaxWidth="560" Padding="14,10" CornerRadius="8"
+                    Visibility="{Binding Notification, Converter={StaticResource BoolToVis}}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="#203A2B" />
+                        <Setter Property="BorderBrush" Value="#2F6A45" />
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding NotificationIsError}" Value="True">
+                                <Setter Property="Background" Value="#3A2023" />
+                                <Setter Property="BorderBrush" Value="#7A3036" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE711;" Command="{Binding DismissNotificationCommand}" Margin="10,0,0,0" />
+                    <TextBlock Text="{Binding Notification}" TextWrapping="Wrap" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" />
+                </DockPanel>
+            </Border>
+        </Grid>
+
+        <!-- Status bar -->
+        <Border Grid.Row="1" Grid.Column="1" Background="#12151A" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+            <DockPanel Margin="16,0" VerticalAlignment="Center">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <TextBlock Text="{Binding CpuText}" Style="{StaticResource Muted}" Margin="16,0,0,0" />
+                    <TextBlock Text="{Binding RamText}" Style="{StaticResource Muted}" Margin="16,0,0,0" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Cs2Text}" Style="{StaticResource Muted}" />
+                    <TextBlock Text="{Binding FfmpegText}" Style="{StaticResource Muted}" Margin="16,0,0,0" />
+                    <TextBlock Text="{Binding QueueText}" Style="{StaticResource Muted}" Margin="16,0,0,0" TextTrimming="CharacterEllipsis" MaxWidth="520" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

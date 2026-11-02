@@ -1,0 +1,124 @@
+<UserControl x:Class="CS2HG.UI.Views.HighlightsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:l="clr-namespace:CS2HG.UI">
+    <Grid Margin="32,26,32,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock Text="{l:Tr nav.highlights}" Style="{StaticResource PageTitle}" />
+            <TextBlock Text="{Binding Summary}" Style="{StaticResource PageSubtitle}" Margin="0,0,0,14" />
+        </StackPanel>
+
+        <!-- Filters -->
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="14,10">
+            <WrapPanel VerticalAlignment="Center">
+                <TextBlock Text="{l:Tr highlights.search}" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" Margin="0,0,8,0" />
+                <TextBox Width="200" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}" ToolTip="{l:Tr highlights.searchTip}" Margin="0,0,16,0" />
+                <TextBlock Text="{l:Tr highlights.category}" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" Margin="0,0,8,0" />
+                <ComboBox Width="150" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}" Margin="0,0,12,0" />
+                <TextBlock Text="{l:Tr highlights.minScore}" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" Margin="0,0,8,0" />
+                <Slider Width="120" Minimum="0" Maximum="150" TickFrequency="10" IsSnapToTickEnabled="True" Value="{Binding MinScore}" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding MinScore}" VerticalAlignment="Center" Margin="8,0,20,0" Width="28" />
+                <Button Style="{StaticResource GhostButton}" Content="Top 5" Command="{Binding SelectTopCommand}" CommandParameter="5" />
+                <Button Style="{StaticResource GhostButton}" Content="{l:Tr highlights.selectAll}" Command="{Binding SelectAllCommand}" />
+                <Button Style="{StaticResource GhostButton}" Content="{l:Tr highlights.selectNone}" Command="{Binding SelectNoneCommand}" />
+            </WrapPanel>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource Card}" Padding="6" Margin="0">
+            <DataGrid ItemsSource="{Binding View}" SelectedItem="{Binding Current}" AutoGenerateColumns="False" CanUserAddRows="False"
+                      HeadersVisibility="Column" GridLinesVisibility="None" RowHeight="74" Background="Transparent" BorderThickness="0"
+                      SelectionMode="Single" EnableRowVirtualization="True">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="" Width="44">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="{l:Tr highlights.preview}" Width="106">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Width="108" Height="61" CornerRadius="6" Background="#232833" ClipToBounds="True">
+                                    <Grid>
+                                        <TextBlock Text="&#xE714;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="{Binding Category, Converter={StaticResource CategoryBrush}}" />
+                                        <Image Source="{Binding Thumbnail, Converter={StaticResource PathToImage}}" Stretch="UniformToFill" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="{l:Tr common.round}" Binding="{Binding Round}" Width="84" ElementStyle="{StaticResource CenterText}" />
+                    <DataGridTemplateColumn Header="{l:Tr highlights.event}" Width="*" MinWidth="280">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel VerticalAlignment="Center" ToolTip="{Binding Details}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Border CornerRadius="4" Padding="6,1" Margin="0,0,8,0" Background="{Binding Category, Converter={StaticResource CategoryBrush}}">
+                                            <TextBlock Text="{Binding CategoryName}" FontSize="10" FontWeight="Bold" Foreground="#111" />
+                                        </Border>
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Events}" Style="{StaticResource Muted}" TextTrimming="CharacterEllipsis" Margin="0,3,0,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="{l:Tr common.player}" Binding="{Binding Player}" Width="120" ElementStyle="{StaticResource CenterText}" />
+                    <DataGridTextColumn Header="{l:Tr highlights.weapon}" Binding="{Binding Weapons}" Width="110" ElementStyle="{StaticResource CenterText}" />
+                    <DataGridTemplateColumn Header="{l:Tr highlights.tickTime}" Width="106">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Tick}" />
+                                    <TextBlock Text="{Binding TimeText}" Style="{StaticResource Muted}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="{l:Tr common.score}" Width="80" SortMemberPath="Score">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Score}" FontSize="18" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" VerticalAlignment="Center" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="{l:Tr analysis.duration}" Binding="{Binding DurationText}" Width="108" ElementStyle="{StaticResource CenterText}" />
+                    <DataGridTemplateColumn Header="POV" Width="200">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <ComboBox ItemsSource="{Binding PovModes}" SelectedItem="{Binding Pov, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <Border Grid.Row="3" Background="#171B22" CornerRadius="10" Padding="16,12" Margin="0,14,0,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Style="{StaticResource GhostButton}" Content="{l:Tr highlights.configureExport}" Command="{Binding GoToExportCommand}" />
+                    <Button Style="{StaticResource AccentButton}" Command="{Binding RenderSelectedCommand}" AutomationProperties.Name="{l:Tr highlights.render}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE714;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" Margin="0,0,8,0" VerticalAlignment="Center" />
+                            <TextBlock Text="{l:Tr highlights.render}" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+                <TextBlock VerticalAlignment="Center">
+                    <Run Text="{Binding SelectedCount, Mode=OneWay}" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
+                    <Run Text="{l:Tr highlights.selectedHint}" Foreground="{StaticResource MutedBrush}" />
+                </TextBlock>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

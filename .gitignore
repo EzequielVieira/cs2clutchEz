@@ -1,0 +1,11 @@
+bin/
+obj/
+dist/
+installer/bin/
+installer/obj/
+*.user
+.vs/
+TestResults/
+tools/ffmpeg/*.exe
+tools/ffmpeg/*.dll
+*.trx
