@@ -51,10 +51,13 @@ The app's texts live in `src/CS2HG.Core/Localization/<language>.json` — a flat
 
 ## Website
 
-`website/build.ps1` turns `website/template.html` and `website/i18n/<language>.json` into one static page per
-language (`/` Portuguese, `/en/`, `/es/`) with its own title, description, canonical and hreflang links,
-structured data (SoftwareApplication + FAQPage), plus `sitemap.xml` and `robots.txt`, in `website/_site`. The FAQ is
-built from the `qN`/`aN` keys. The Pages workflow runs the same script on every push to `website/`.
+`website/build.ps1` builds every page in every language into `website/_site`: `layout.html` (head, header, footer) wraps
+a page body — `home.html`, translated with `{{t:key}}` from `website/i18n/<language>.json`, or the guide, written per
+language in `guide/<language>.html`. Each page gets its own URL per language (`/`, `/en/`, `/es/`;
+`/como-transformar-demo-do-cs2-em-video/`, `/en/cs2-demo-to-video/`, `/es/convertir-demo-de-cs2-en-video/`), title,
+description, canonical and hreflang links and structured data (home: SoftwareApplication + FAQPage from the `qN`/`aN`
+keys; guide: HowTo from its `<h2 id="…" data-step>` sections + BreadcrumbList), plus `sitemap.xml` and `robots.txt`.
+The Pages workflow runs the same script on every push to `website/`.
 
 ```powershell
 ./website/build.ps1      # then serve website/_site with any static file server
