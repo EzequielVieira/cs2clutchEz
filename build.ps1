@@ -50,6 +50,9 @@ if (-not $SkipTests) {
 }
 
 Step 'Publish self-contained win-x64 -> dist/app'
+# Deleting dist/app under a running copy of the app would leave it half-replaced.
+$running = Get-Process cs2clutchEz, cs2clutchez-cli -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($app, [StringComparison]::OrdinalIgnoreCase) }
+if ($running) { throw "Close cs2clutchEz running from $app (process $(($running | ForEach-Object Id) -join ', ')) and run the build again." }
 Remove-Item $app -Recurse -Force -ErrorAction SilentlyContinue
 foreach ($project in 'src\CS2HG.UI\CS2HG.UI.csproj', 'src\CS2HG.Cli\CS2HG.Cli.csproj') {
     Run dotnet @('publish', (Join-Path $root $project), '-c', $Configuration, '-r', 'win-x64', '--self-contained', 'true',
