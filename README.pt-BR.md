@@ -36,11 +36,16 @@ A interface está em **português (Brasil)**, **inglês** e **espanhol** e troca
 4. Detectores independentes encontram e ordenam: First Blood, Double/Triple/Quadra Kill, Ace, Headshot, No-scope,
    Wallbang, kill com faca/Zeus/AWP, através da smoke, cego, Clutch 1v1…1v5, Retake, Defuse decisivo, Round
    decisivo, multikill em sequência, eliminações rápidas, muito dano e dano de utilitária.
-5. Você marca os highlights e escolhe POV, resolução, FPS, codec, bitrate e os segundos antes/depois.
+5. Você marca os highlights e escolhe POV, resolução, FPS, codec, bitrate e os segundos antes/depois, além do
+   estilo: **acelerar entre as jogadas** (2x/4x/8x) ou cortar, **câmera lenta em cada kill**, **vertical 9:16** para
+   TikTok/Reels/Shorts, **contador de kills** (1/5 … 5/5), **marca d'água** com seu nick e **música de fundo**.
 6. A fila abre o CS2, posiciona a demo no tick exato, trava e **verifica** o POV, grava a janela em tempo real e
    exporta o MP4 (título, jogador e round sobrepostos, fade e crossfade entre cortes).
 7. Os vídeos prontos ficam em **Clipes**: assistir, abrir a pasta, copiar para compartilhar ou juntar vários numa
-   montagem.
+   montagem (com música, se quiser). Uma notificação do Windows avisa quando a fila termina.
+
+O **modo automático** faz tudo isso para várias partidas de uma vez: adicione as demos (ou "Minhas partidas do CS2")
+e ele coloca na fila as N melhores jogadas de cada uma. O app também avisa quando sai uma versão nova no GitHub.
 
 ## Código de compartilhamento
 

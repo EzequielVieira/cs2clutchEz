@@ -41,25 +41,21 @@ public static class EditPlanner
             keep = next;
         }
 
-        var slowStart = edit.SlowMotionStart;
-        var slowEnd = edit.SlowMotionEnd;
-        var hasSlow = slowStart is not null && slowEnd is not null && slowEnd > slowStart;
-        var slowFactor = Math.Clamp(edit.SlowMotionFactor <= 0 ? 0.5 : edit.SlowMotionFactor, 0.1, 1);
+        var ranges = edit.SpeedRanges.Where(r => r.End > r.Start && r.Factor > 0).ToList();
+        if (edit.SlowMotionStart is { } slowStart && edit.SlowMotionEnd is { } slowEnd && slowEnd > slowStart)
+            ranges.Add(new SpeedRange(slowStart, slowEnd, edit.SlowMotionFactor <= 0 ? 0.5 : edit.SlowMotionFactor));
 
         var pieces = new List<EditPiece>();
         foreach (var (s, e) in keep)
         {
-            if (!hasSlow)
+            // Split at every speed-range boundary; where ranges overlap the slowest one wins.
+            var bounds = ranges.SelectMany(r => new[] { r.Start, r.End }).Where(t => t > s && t < e).Append(s).Append(e).Distinct().Order().ToList();
+            for (var i = 0; i < bounds.Count - 1; i++)
             {
-                Add(pieces, s, e, speed);
-                continue;
+                var mid = (bounds[i] + bounds[i + 1]) / 2;
+                var factor = ranges.Where(r => r.Start <= mid && mid < r.End).Select(r => Math.Clamp(r.Factor, 0.1, 4)).DefaultIfEmpty(1).Min();
+                Add(pieces, bounds[i], bounds[i + 1], speed * factor);
             }
-
-            var a = Math.Clamp(slowStart!.Value, s, e);
-            var b = Math.Clamp(slowEnd!.Value, s, e);
-            Add(pieces, s, a, speed);
-            Add(pieces, a, b, speed * slowFactor);
-            Add(pieces, b, e, speed);
         }
 
         return pieces;
@@ -67,10 +63,47 @@ public static class EditPlanner
 
     private static void Add(List<EditPiece> pieces, double s, double e, double speed)
     {
-        if (e - s >= MinPieceSeconds) pieces.Add(new EditPiece(s, e, speed));
+        if (e - s < MinPieceSeconds) return;
+        if (pieces.Count > 0 && Math.Abs(pieces[^1].End - s) < 1e-9 && Math.Abs(pieces[^1].Speed - speed) < 1e-9)
+            pieces[^1] = pieces[^1] with { End = e };
+        else
+            pieces.Add(new EditPiece(s, e, speed));
     }
 
     public static double OutputDuration(IEnumerable<EditPiece> pieces) => pieces.Sum(p => p.OutputDuration);
+
+    /// <summary>Where a moment of the master ends up in the exported video (removed moments map to the next kept one).</summary>
+    public static double MapToOutput(IReadOnlyList<EditPiece> pieces, double masterTime)
+    {
+        var output = 0.0;
+        foreach (var p in pieces)
+        {
+            if (masterTime < p.Start) return output;
+            if (masterTime <= p.End) return output + (masterTime - p.Start) / p.Speed;
+            output += p.OutputDuration;
+        }
+
+        return output;
+    }
+
+    /// <summary>Slow motion around each kill: from <paramref name="before"/> s before to <paramref name="after"/> s after.</summary>
+    public static List<SpeedRange> KillSlowMotion(IEnumerable<double> killTimes, IEnumerable<TimeWindow> fastWindows,
+        double factor = 0.5, double before = 0.35, double after = 0.65)
+    {
+        var fast = fastWindows.ToList();
+        var ranges = new List<SpeedRange>();
+        foreach (var t in killTimes.Order())
+        {
+            // A kill during a fast-forward stretch stays fast.
+            if (fast.Any(w => t >= w.Start && t <= w.End)) continue;
+            var start = Math.Max(0, t - before);
+            var end = t + after;
+            if (ranges.Count > 0 && start <= ranges[^1].End) ranges[^1] = ranges[^1] with { End = end };
+            else ranges.Add(new SpeedRange(start, end, factor));
+        }
+
+        return ranges;
+    }
 
     /// <summary>atempo accepts 0.5..100 per instance; chain instances for slower speeds.</summary>
     public static List<double> AtempoChain(double speed)

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using CS2HG.Core.Abstractions;
 using CS2HG.Core.Localization;
 using CS2HG.Core.Models;
+using CS2HG.Core.Planning;
 using CS2HG.Core.Settings;
 using CS2HG.Core.Utilities;
 using CS2HG.VideoProcessing;
@@ -53,7 +54,8 @@ public sealed class HighlightRenderPipeline(
             Report(0.86, L.T("render.buildingMaster"));
             masterPath = Path.Combine(workDir, "master.mp4");
             var inputs = job.Captured.OrderBy(c => c.Index).Select(c => new SegmentInput(
-                c.VideoPath, c.VideoOffsetSeconds, c.AudioPath, c.AudioOffsetSeconds, c.DurationSeconds)).ToList();
+                c.VideoPath, c.VideoOffsetSeconds, c.AudioPath, c.AudioOffsetSeconds, c.DurationSeconds,
+                c.FastWindows.Count > 0 ? c.FastWindows : null)).ToList();
             await processor.BuildMasterAsync(inputs, masterPath, job.Edit.SegmentTransitionSeconds,
                 new Progress<double>(p => Report(0.86 + p * 0.05, L.T("render.buildingMaster"))), ct);
             job.SourceMasterPath = masterPath;
@@ -69,8 +71,9 @@ public sealed class HighlightRenderPipeline(
 
         Report(0.91, L.T("render.exporting"));
         var output = job.OutputPath ??= BuildOutputPath(job);
+        var timeline = MasterTimeline.Build(job, job.Edit.SegmentTransitionSeconds);
         await processor.ExportAsync(masterPath, output, job.Export, job.Edit,
-            new Progress<double>(p => Report(0.91 + p * 0.07, L.T("render.exporting"))), ct);
+            new Progress<double>(p => Report(0.91 + p * 0.07, L.T("render.exporting"))), ct, timeline);
 
         Report(0.985, L.T("render.thumbnail"));
         try
@@ -98,7 +101,7 @@ public sealed class HighlightRenderPipeline(
         if (pending.Count == 0) return;
 
         var tickRate = job.TickRate <= 0 ? 64 : job.TickRate;
-        var totalSeconds = job.Segments.Sum(s => s.DurationSeconds(tickRate));
+        var totalSeconds = job.Segments.Sum(s => s.PlaybackSeconds(tickRate));
         double DoneSeconds() => job.Captured.Sum(c => c.DurationSeconds);
         double Fraction(double extra) => 0.15 + 0.7 * Math.Min(1, (DoneSeconds() + extra) / Math.Max(1, totalSeconds));
 
@@ -121,7 +124,7 @@ public sealed class HighlightRenderPipeline(
 
             var video = Path.Combine(workDir, $"seg{segment.Index:00}.mp4");
             var audio = job.Export.RecordAudio ? Path.Combine(workDir, $"seg{segment.Index:00}.wav") : null;
-            var duration = segment.DurationSeconds(tickRate);
+            var duration = segment.PlaybackSeconds(tickRate);
             var latency = S.Cs2.InputLatencyMs / 1000.0;
 
             report(Fraction(0), L.F("render.recordingStart", label, duration));
@@ -131,20 +134,53 @@ public sealed class HighlightRenderPipeline(
             await Task.Delay(250, ct);
 
             var resumedAt = await playback.ResumeAsync(ct);
-            var sw = Stopwatch.StartNew();
-            // Playback runs in real time; keep reporting while it plays.
-            while (sw.Elapsed.TotalSeconds < duration)
+            var freq = (double)Stopwatch.Frequency;
+            // Seconds of useful footage: commands share the key-to-frame latency with demo_resume, so a command
+            // sent t seconds after it takes effect t seconds into the footage.
+            double Now() => (Stopwatch.GetTimestamp() - resumedAt) / freq;
+
+            // Where the demo is: it moves at `speed` × real time since the last measured switch.
+            var lastTick = segment.StartTick;
+            double lastAt = 0, speed = 1;
+            double At(int tick) => lastAt + (tick - lastTick) / (double)tickRate / speed;
+
+            async Task PlayUntil(double target)
             {
-                var left = duration - sw.Elapsed.TotalSeconds;
-                await Task.Delay(TimeSpan.FromSeconds(Math.Min(0.25, Math.Max(0.01, left))), ct);
-                report(Fraction(Math.Min(duration, sw.Elapsed.TotalSeconds)), L.F("render.recording", label, sw.Elapsed.TotalSeconds, duration));
+                while (Now() < target)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(Math.Min(0.25, Math.Max(0.005, target - Now()))), ct);
+                    var now = Math.Min(Now(), duration);
+                    report(Fraction(now), L.F("render.recording", label, now, duration));
+                }
             }
+
+            var timeline = new List<TimelinePoint>();
+            var fastWindows = new List<TimeWindow>();
+            foreach (var ff in segment.FastForward.OrderBy(f => f.StartTick))
+            {
+                await PlayUntil(At(ff.StartTick));
+                var fastAt = (await playback.SetSpeedAsync(ff.Speed, null, ct) - resumedAt) / freq;
+                (lastTick, lastAt, speed) = (ff.StartTick, fastAt, ff.Speed);
+                timeline.Add(new TimelinePoint { Tick = ff.StartTick, Seconds = fastAt });
+
+                await PlayUntil(At(ff.EndTick));
+                var next = ff.NextPovSteamId is { } povId ? new PovTarget(povId, ff.NextPovName ?? "", job.Export.Pov) : null;
+                var normalAt = (await playback.SetSpeedAsync(1, next, ct) - resumedAt) / freq;
+                (lastTick, lastAt, speed) = (ff.EndTick, normalAt, 1);
+                timeline.Add(new TimelinePoint { Tick = ff.EndTick, Seconds = normalAt });
+                fastWindows.Add(new TimeWindow { Start = fastAt, End = normalAt, Speed = ff.Speed });
+                logger.LogInformation("Fast-forward {Speed}x ticks {From}-{To}: {Start:0.000}s-{End:0.000}s of footage",
+                    ff.Speed, ff.StartTick, ff.EndTick, fastAt, normalAt);
+            }
+
+            // Length of the useful footage from the measured switches (the planned length without fast-forward).
+            duration = At(segment.EndTick);
+            await PlayUntil(duration);
 
             await playback.PauseAsync(ct);
             await Task.Delay(300, ct);
             await capture.StopAsync(ct);
 
-            var freq = (double)Stopwatch.Frequency;
             var videoOffset = (resumedAt - capture.VideoOrigin) / freq + latency;
             var audioOffset = capture.AudioOrigin is { } ao ? (resumedAt - ao) / freq + latency : 0;
             job.Captured.Add(new CapturedSegment
@@ -157,6 +193,8 @@ public sealed class HighlightRenderPipeline(
                 DurationSeconds = duration,
                 PovVerified = verified,
                 PovObserved = observed,
+                Timeline = timeline,
+                FastWindows = fastWindows,
             });
             logger.LogInformation("Captured {Job} segment {Index}: {Duration:0.0}s, video offset {VOff:0.000}s, audio offset {AOff:0.000}s, POV {Pov} verified={Verified}",
                 job.Id, segment.Index, duration, videoOffset, audioOffset, observed, verified);
@@ -202,7 +240,7 @@ public sealed class HighlightRenderPipeline(
         if (first is null) return 1;
         // Key moment of the first segment ≈ its last second of pre-roll ends.
         var t = job.Export.SecondsBefore + 0.2 - job.Edit.TrimStartSeconds;
-        return Math.Clamp(t, 0.5, Math.Max(0.5, first.DurationSeconds(tickRate) - 0.5));
+        return Math.Clamp(t, 0.5, Math.Max(0.5, first.PlaybackSeconds(tickRate) - 0.5));
     }
 
     private static void TryDelete(string path)

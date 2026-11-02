@@ -22,7 +22,52 @@ public sealed class ClipSegment
     public string PovName { get; set; } = "";
     public PovMode Mode { get; set; }
 
+    /// <summary>Stretches between plays that are played back fast instead of being cut (sorted, inside the segment).</summary>
+    public List<FastForwardRange> FastForward { get; set; } = [];
+
+    /// <summary>Demo time covered by the segment.</summary>
     public double DurationSeconds(int tickRate) => (double)(EndTick - StartTick) / tickRate;
+
+    /// <summary>Real time it takes to play (and record) the segment, counting the fast-forward stretches.</summary>
+    public double PlaybackSeconds(int tickRate)
+    {
+        var fast = FastForward.Sum(f => (double)(f.EndTick - f.StartTick) / tickRate);
+        var fastPlayed = FastForward.Sum(f => (double)(f.EndTick - f.StartTick) / tickRate / Math.Max(1, f.Speed));
+        return DurationSeconds(tickRate) - fast + fastPlayed;
+    }
+}
+
+/// <summary>A gap between two plays that the demo plays through at <see cref="Speed"/>.</summary>
+public sealed class FastForwardRange
+{
+    public int StartTick { get; set; }
+    public int EndTick { get; set; }
+    public double Speed { get; set; } = 4;
+
+    /// <summary>POV of the play that follows, when it is not the one being watched (killer/victim modes).</summary>
+    public ulong? NextPovSteamId { get; set; }
+    public string? NextPovName { get; set; }
+}
+
+/// <summary>Demo tick ↔ seconds into a segment's useful footage.</summary>
+public sealed class TimelinePoint
+{
+    public int Tick { get; set; }
+    public double Seconds { get; set; }
+}
+
+/// <summary>A time range of a video, played at <see cref="Speed"/> times the demo's real speed.</summary>
+public sealed class TimeWindow
+{
+    public double Start { get; set; }
+    public double End { get; set; }
+    public double Speed { get; set; } = 1;
+}
+
+/// <summary>Where things happen in the master clip, used by the export overlays and slow motion.</summary>
+public sealed record ClipTimeline(IReadOnlyList<double> KillTimes, IReadOnlyList<TimeWindow> FastWindows)
+{
+    public static readonly ClipTimeline Empty = new([], []);
 }
 
 /// <summary>A segment that was already captured. Persisted so interrupted jobs resume where they stopped.</summary>
@@ -38,6 +83,15 @@ public sealed class CapturedSegment
     public double DurationSeconds { get; set; }
     public bool PovVerified { get; set; }
     public string? PovObserved { get; set; }
+
+    /// <summary>
+    /// Measured while recording: which demo tick was on screen at which second of the useful footage.
+    /// Empty for segments recorded at constant speed (tick → seconds is then linear).
+    /// </summary>
+    public List<TimelinePoint> Timeline { get; set; } = [];
+
+    /// <summary>Parts of the useful footage recorded while the demo played fast (seconds from its start).</summary>
+    public List<TimeWindow> FastWindows { get; set; } = [];
 }
 
 /// <summary>User edits applied on export (editor). Future effects plug in through <see cref="Effects"/>.</summary>
@@ -54,6 +108,9 @@ public sealed class EditSettings
     public double? SlowMotionStart { get; set; }
     public double? SlowMotionEnd { get; set; }
     public double SlowMotionFactor { get; set; } = 0.5;
+
+    /// <summary>Extra ranges of the master played at another speed (e.g. slow motion on each kill).</summary>
+    public List<SpeedRange> SpeedRanges { get; set; } = [];
     public bool FadeIn { get; set; } = true;
     public bool FadeOut { get; set; } = true;
     public double FadeSeconds { get; set; } = 0.4;
@@ -68,12 +125,16 @@ public sealed class EditSettings
     {
         var c = (EditSettings)MemberwiseClone();
         c.Cuts = Cuts.Select(x => x with { }).ToList();
+        c.SpeedRanges = SpeedRanges.Select(x => x with { }).ToList();
         c.Effects = Effects.Select(e => new EffectSpec { Name = e.Name, Parameters = new(e.Parameters) }).ToList();
         return c;
     }
 }
 
 public sealed record CutRange(double Start, double End);
+
+/// <summary>Master time range played at <see cref="Factor"/> × speed (0.5 = half speed).</summary>
+public sealed record SpeedRange(double Start, double End, double Factor);
 
 public sealed class EffectSpec
 {
@@ -112,6 +173,9 @@ public sealed class RenderJob
     public EditSettings Edit { get; set; } = new();
     public List<ClipSegment> Segments { get; set; } = [];
     public List<CapturedSegment> Captured { get; set; } = [];
+
+    /// <summary>Demo ticks of the player's kills in this play (kill counter, slow motion).</summary>
+    public List<int> KillTicks { get; set; } = [];
 
     /// <summary>Same highlight + same settings = same key; used to avoid duplicate renders.</summary>
     public string DedupeKey { get; set; } = "";

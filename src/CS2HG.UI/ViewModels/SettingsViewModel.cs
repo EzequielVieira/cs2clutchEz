@@ -33,6 +33,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         _utilityDamage = s.Detection.UtilityDamageThreshold;
         _minimumScore = s.Detection.MinimumScore;
         _mergeGap = s.Detection.SegmentMergeGapSeconds;
+        _checkForUpdates = s.CheckForUpdates;
+        _notifyWhenDone = s.NotifyWhenQueueDone;
     }
 
     /// <summary>"Automatic" (Windows language) plus every translated language.</summary>
@@ -62,6 +64,8 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private int _utilityDamage;
     [ObservableProperty] private int _minimumScore;
     [ObservableProperty] private double _mergeGap;
+    [ObservableProperty] private bool _checkForUpdates;
+    [ObservableProperty] private bool _notifyWhenDone;
     [ObservableProperty] private bool _downloading;
     [ObservableProperty] private double _downloadProgress;
 
@@ -97,6 +101,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         s.Detection.UtilityDamageThreshold = UtilityDamage;
         s.Detection.MinimumScore = MinimumScore;
         s.Detection.SegmentMergeGapSeconds = MergeGap;
+        s.CheckForUpdates = CheckForUpdates;
+        s.NotifyWhenQueueDone = NotifyWhenDone;
         store.Save();
         _main.Host.Media.Refresh();
         _main.Notify(L.T(rootChanged ? "settings.savedRestart" : "settings.saved"));
@@ -150,4 +156,7 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [RelayCommand]
     private void OpenGitHub() => Shell.OpenUrl(Brand.GitHubUrl);
+
+    [RelayCommand]
+    private Task CheckUpdatesNowAsync() => _main.CheckForUpdatesAsync(manual: true);
 }

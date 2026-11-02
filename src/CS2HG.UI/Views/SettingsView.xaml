@@ -66,6 +66,15 @@
                             </StackPanel>
                         </StackPanel>
                     </Border>
+
+                    <Border Style="{StaticResource Card}">
+                        <StackPanel>
+                            <TextBlock Text="{l:Tr settings.updates}" Style="{StaticResource SectionTitle}" />
+                            <CheckBox Content="{l:Tr settings.checkUpdates}" IsChecked="{Binding CheckForUpdates}" />
+                            <CheckBox Content="{l:Tr settings.notifyDone}" IsChecked="{Binding NotifyWhenDone}" Margin="0,6,0,0" />
+                            <Button Style="{StaticResource GhostButton}" Content="{l:Tr settings.checkNow}" Command="{Binding CheckUpdatesNowCommand}" HorizontalAlignment="Left" Margin="0,12,0,0" />
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2">

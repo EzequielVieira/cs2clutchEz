@@ -4,6 +4,8 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <!-- Only for the notification (NotifyIcon) when the render queue finishes. -->
+    <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>cs2clutchEz</AssemblyName>
     <RootNamespace>CS2HG.UI</RootNamespace>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
@@ -22,6 +24,12 @@
 
   <ItemGroup>
     <Resource Include="Assets\app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Windows Forms is referenced for NotifyIcon only; keep WPF's types unambiguous. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
   </ItemGroup>
 
   <ItemGroup>

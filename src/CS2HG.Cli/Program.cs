@@ -74,6 +74,8 @@ static void PrintHelp()
                                   [--res 720p|1080p|1440p|4K] [--fps 60] [--codec h264|h265] [--bitrate 16000]
                                   [--pov selected|killer|victim|third|director] [--hud killfeed|full|none]
                                   [--no-audio] [--no-overlay] [--keep-open] [--force]
+                                  [--between cut|ff] [--ff-speed 2|4|8] [--vertical] [--slowmo-kills] [--no-counter]
+                                  [--watermark "@nick"] [--music song.mp3] [--music-volume 35]
           cs2clutchez-cli sharecode CSGO-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx [--player X] [--top N] [--render]
                                                    Downloads the demo from the match share code and analyzes it
           cs2clutchez-cli matches                            Matches downloaded by CS2 (replays folder) with their share codes
@@ -191,6 +193,14 @@ static async Task<int> Render(AppHost host, Options o, CancellationToken ct)
         export.Hud = hud.ToLowerInvariant() switch { "full" => HudMode.Full, "none" => HudMode.None, _ => HudMode.KillFeedOnly };
     if (o.Has("no-audio")) export.RecordAudio = false;
     if (o.Has("no-overlay")) export.AddTitleOverlay = false;
+    if (o.Get("between") is { } between) export.BetweenPlays = between.Equals("cut", StringComparison.OrdinalIgnoreCase) ? BetweenPlays.Cut : BetweenPlays.FastForward;
+    if (o.GetInt("ff-speed") is { } ffSpeed) export.FastForwardSpeed = ffSpeed;
+    if (o.Has("vertical")) export.Layout = VideoLayout.Vertical;
+    if (o.Has("slowmo-kills")) export.SlowMotionKills = true;
+    if (o.Has("no-counter")) export.KillCounter = false;
+    if (o.Get("watermark") is { } watermark) export.Watermark = watermark;
+    if (o.Get("music") is { } music) export.MusicPath = Path.GetFullPath(music);
+    if (o.GetInt("music-volume") is { } musicVolume) export.MusicVolume = musicVolume;
     if (o.Has("keep-open")) host.Settings.Settings.Cs2.CloseGameWhenDone = false;
 
     IEnumerable<Highlight> selected = highlights;

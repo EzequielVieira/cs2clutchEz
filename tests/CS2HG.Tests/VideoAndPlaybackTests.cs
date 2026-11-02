@@ -142,6 +142,7 @@ public sealed class NoGamePlayback : IDemoPlaybackController
     public Task ApplyHudAsync(HudMode mode, CancellationToken cancellationToken) => throw new InvalidOperationException();
     public Task<long> ResumeAsync(CancellationToken cancellationToken) => throw new InvalidOperationException();
     public Task<long> PauseAsync(CancellationToken cancellationToken) => throw new InvalidOperationException();
+    public Task<long> SetSpeedAsync(double speed, PovTarget? switchPov, CancellationToken cancellationToken) => throw new InvalidOperationException();
     public Task EndSessionAsync(bool closeGame, CancellationToken cancellationToken) => Task.CompletedTask;
     public ValueTask DisposeAsync() => ValueTask.CompletedTask;
 }

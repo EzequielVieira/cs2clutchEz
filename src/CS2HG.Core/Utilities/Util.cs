@@ -70,6 +70,14 @@ public static class Hashing
             job.Export.RecordAudio,
             job.Export.AddTitleOverlay,
             job.Export.FadeTransitions,
+            job.Export.BetweenPlays,
+            job.Export.FastForwardSpeed,
+            job.Export.SlowMotionKills,
+            job.Export.Layout,
+            job.Export.KillCounter,
+            job.Export.Watermark,
+            job.Export.MusicPath,
+            job.Export.MusicVolume,
             Edit = job.Edit,
         }, Json.Options);
         return Sha1Hex(payload);

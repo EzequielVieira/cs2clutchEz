@@ -44,6 +44,7 @@ public sealed partial class MainViewModel : ObservableObject
         Queue = new QueueViewModel(this);
         Library = new LibraryViewModel(this);
         Settings = new SettingsViewModel(this);
+        Auto = new AutoViewModel(this);
         _currentPage = Home;
         _queueText = L.T("queue.statusEmpty");
         _cs2Text = L.T("status.checking");
@@ -67,6 +68,10 @@ public sealed partial class MainViewModel : ObservableObject
     public QueueViewModel Queue { get; }
     public LibraryViewModel Library { get; }
     public SettingsViewModel Settings { get; }
+    public AutoViewModel Auto { get; }
+
+    /// <summary>Raised when the render queue becomes idle after finishing jobs: (completed, failed).</summary>
+    public event Action<int, int>? QueueFinished;
 
     [ObservableProperty] private ObservableObject? _currentPage;
     [ObservableProperty] private string _cpuText = "CPU —";
@@ -78,6 +83,10 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _ffmpegText;
     [ObservableProperty] private string? _notification;
     [ObservableProperty] private bool _notificationIsError;
+    [ObservableProperty] private string? _updateText;
+
+    private UpdateInfo? _update;
+    private readonly HashSet<string> _runJobs = [];
 
     public string AppVersion => "v" + (typeof(MainViewModel).Assembly.GetName().Version?.ToString(3) ?? "1.0.0");
 
@@ -92,11 +101,13 @@ public sealed partial class MainViewModel : ObservableObject
             "Queue" => Queue,
             "Library" => Library,
             "Settings" => Settings,
+            "Auto" => Auto,
             _ => Home,
         };
         if (CurrentPage == Home) Home.Refresh();
         if (CurrentPage == Library) Library.Refresh();
         if (CurrentPage == Export) Export.RefreshPlayers();
+        if (CurrentPage == Auto) Auto.Refresh();
         OnPropertyChanged(nameof(CurrentPageKey));
     }
 
@@ -108,6 +119,7 @@ public sealed partial class MainViewModel : ObservableObject
         QueueViewModel => "Queue",
         LibraryViewModel => "Library",
         SettingsViewModel => "Settings",
+        AutoViewModel => "Auto",
         _ => "Home",
     };
 
@@ -125,6 +137,8 @@ public sealed partial class MainViewModel : ObservableObject
         Analysis.RefreshTexts();
         Highlights.RefreshTexts();
         Library.Refresh();
+        Auto.Refresh();
+        if (_update is not null) UpdateText = L.F("update.available", _update.Version.ToString(3));
         RefreshQueueStatus();
         Tick();
         CurrentPage = null;
@@ -200,7 +214,40 @@ public sealed partial class MainViewModel : ObservableObject
             : pending > 0 ? L.F("queue.statusPending", pending)
             : L.F("queue.statusDone", jobs.Count(j => j.Status == RenderJobStatus.Completed));
         Queue.Sync();
+        TrackQueueRun(jobs, running is not null || (pending > 0 && !Host.Queue.IsPaused && _runJobs.Count > 0));
     }
+
+    /// <summary>Remembers the jobs rendered since the queue started working and reports them once it is idle again.</summary>
+    private void TrackQueueRun(IReadOnlyList<RenderJob> jobs, bool working)
+    {
+        foreach (var job in jobs.Where(j => j.Status == RenderJobStatus.Running)) _runJobs.Add(job.Id);
+        if (working || _runJobs.Count == 0) return;
+
+        var finished = jobs.Where(j => _runJobs.Contains(j.Id)).ToList();
+        if (finished.Any(j => j.Status is RenderJobStatus.Pending or RenderJobStatus.Running)) return;
+        var completed = finished.Count(j => j.Status == RenderJobStatus.Completed);
+        var failed = finished.Count(j => j.Status == RenderJobStatus.Failed);
+        _runJobs.Clear();
+        if (completed + failed > 0) QueueFinished?.Invoke(completed, failed);
+    }
+
+    /// <summary>Asks GitHub for a newer release; <paramref name="manual"/> also reports "you are up to date".</summary>
+    public async Task CheckForUpdatesAsync(bool manual)
+    {
+        var update = await Host.Updates.CheckAsync(CancellationToken.None);
+        _update = update;
+        UpdateText = update is null ? null : L.F("update.available", update.Version.ToString(3));
+        if (manual && update is null) Notify(L.F("update.latest", AppVersion));
+    }
+
+    [RelayCommand]
+    private void OpenUpdate()
+    {
+        if (_update is not null) Shell.OpenUrl(_update.Url);
+    }
+
+    [RelayCommand]
+    private void DismissUpdate() => UpdateText = null;
 
     public void Shutdown() => _timer.Stop();
 }

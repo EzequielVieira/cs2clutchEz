@@ -58,3 +58,8 @@ public partial class SettingsView : UserControl
 {
     public SettingsView() => InitializeComponent();
 }
+
+public partial class AutoView : UserControl
+{
+    public AutoView() => InitializeComponent();
+}

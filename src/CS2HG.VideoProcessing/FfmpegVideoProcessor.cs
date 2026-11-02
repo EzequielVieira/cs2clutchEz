@@ -4,6 +4,7 @@ using System.Text.Json;
 using CS2HG.Core.Abstractions;
 using CS2HG.Core.Localization;
 using CS2HG.Core.Models;
+using CS2HG.Core.Planning;
 using CS2HG.Core.Settings;
 using Microsoft.Extensions.Logging;
 
@@ -71,8 +72,7 @@ public sealed class FfmpegVideoProcessor(FfmpegRunner runner, EncoderCatalog enc
         int? silenceInput = null;
         var silenceUses = segments.Count(s => s.AudioPath is null);
 
-        var transition = segments.Count > 1 ? Math.Min(transitionSeconds, segments.Min(s => s.Duration) / 3) : 0;
-        if (transition < 0.05) transition = 0;
+        var transition = MasterTimeline.EffectiveTransition(segments.Select(s => s.Duration).ToList(), transitionSeconds);
 
         for (var i = 0; i < segments.Count; i++)
         {
@@ -91,7 +91,7 @@ public sealed class FfmpegVideoProcessor(FfmpegRunner runner, EncoderCatalog enc
                 var pre = start < 0 ? $"adelay=delays={(int)(-start * 1000)}:all=1," : "";
                 filters.Add($"[{a}:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,{pre}" +
                             $"atrim=start={F(Math.Max(0, start))}:duration={F(seg.Duration)},asetpts=PTS-STARTPTS," +
-                            $"apad=whole_dur={F(seg.Duration)}[a{i}]");
+                            $"apad=whole_dur={F(seg.Duration)}{Mute(seg.MuteWindows)}[a{i}]");
             }
             else
             {
@@ -153,22 +153,52 @@ public sealed class FfmpegVideoProcessor(FfmpegRunner runner, EncoderCatalog enc
         await runner.RunAsync(args, total, progress, cancellationToken);
     }
 
+    /// <summary>Output frame size: the export resolution, or its 9:16 counterpart (1080p → 1080×1920).</summary>
+    public static (int Width, int Height) OutputSize(ExportSettings export) => export.Layout == VideoLayout.Vertical
+        ? (Even(export.Height), Even((int)Math.Round(export.Height * 16 / 9.0)))
+        : (Even(export.Width), Even(export.Height));
+
     public async Task ExportAsync(string masterPath, string outputPath, ExportSettings export, EditSettings edit,
-        IProgress<double>? progress, CancellationToken cancellationToken)
+        IProgress<double>? progress, CancellationToken cancellationToken, ClipTimeline? timeline = null)
     {
+        timeline ??= ClipTimeline.Empty;
         var info = await ProbeAsync(masterPath, cancellationToken);
+        if (export.SlowMotionKills && timeline.KillTimes.Count > 0)
+        {
+            edit = edit.Clone();
+            edit.SpeedRanges.AddRange(EditPlanner.KillSlowMotion(timeline.KillTimes, timeline.FastWindows));
+        }
+
         var pieces = EditPlanner.BuildPieces(info.DurationSeconds, edit);
         if (pieces.Count == 0) throw new InvalidOperationException(L.T("error.cutsRemoveAll"));
         var outDuration = EditPlanner.OutputDuration(pieces);
 
-        var width = Even(export.Width);
-        var height = Even(export.Height);
+        var (width, height) = OutputSize(export);
         var fps = export.Fps <= 0 ? 60 : export.Fps;
         var args = new List<string> { "-i", masterPath };
         var filters = new List<string>();
         var n = pieces.Count;
         var hasAudio = info.HasAudio;
-        if (!hasAudio) args.AddRange(["-f", "lavfi", "-t", F(outDuration + 1), "-i", "anullsrc=r=48000:cl=stereo"]);
+        var nextInput = 1;
+        if (!hasAudio)
+        {
+            args.AddRange(["-f", "lavfi", "-t", F(outDuration + 1), "-i", "anullsrc=r=48000:cl=stereo"]);
+            nextInput++;
+        }
+
+        int? musicInput = null;
+        if (!string.IsNullOrWhiteSpace(export.MusicPath))
+        {
+            if (File.Exists(export.MusicPath))
+            {
+                args.AddRange(["-stream_loop", "-1", "-i", export.MusicPath]);
+                musicInput = nextInput++;
+            }
+            else
+            {
+                logger.LogWarning("Music file {Path} not found; exporting without music", export.MusicPath);
+            }
+        }
 
         if (n == 1)
         {
@@ -192,25 +222,42 @@ public sealed class FfmpegVideoProcessor(FfmpegRunner runner, EncoderCatalog enc
                 : string.Concat(Enumerable.Range(0, n).Select(i => $"[vp{i}]")) + $"concat=n={n}:v=1:a=0[vc]");
         }
 
-        var video = new List<string>
-        {
-            $"fps={fps}",
-            $"scale={width}:{height}:force_original_aspect_ratio=decrease:flags=lanczos",
-            $"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2",
-            "setsar=1",
-        };
+        // Vertical: the whole game frame on top of a zoomed, blurred copy that fills 9:16.
+        filters.Add(export.Layout == VideoLayout.Vertical
+            ? $"[vc]fps={fps},split=2[bg0][fg0];" +
+              $"[bg0]scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},boxblur=24:2,eq=brightness=-0.12[bg];" +
+              $"[fg0]scale={width}:-2:flags=lanczos[fg];[bg][fg]overlay=(W-w)/2:(H-h)/2,setsar=1[vl]"
+            : $"[vc]fps={fps},scale={width}:{height}:force_original_aspect_ratio=decrease:flags=lanczos," +
+              $"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1[vl]");
+
+        var basis = Math.Min(width, height);
+        var video = new List<string>();
         video.AddRange(effects.BuildFilters(edit.Effects, new EffectContext(width, height, fps, outDuration)));
-        if (edit.ShowOverlay) video.AddRange(Overlays(edit, height));
+        if (edit.ShowOverlay) video.AddRange(Overlays(edit, basis));
+        video.AddRange(FastForwardBadges(timeline.FastWindows, pieces, basis));
+        if (export.KillCounter) video.AddRange(KillCounter(timeline.KillTimes, pieces, outDuration, basis, export.Layout));
+        if (!string.IsNullOrWhiteSpace(export.Watermark) && Watermark(export.Watermark.Trim(), basis) is { } mark) video.Add(mark);
         var fade = Math.Clamp(edit.FadeSeconds, 0.1, Math.Max(0.1, outDuration / 4));
         if (edit.FadeIn) video.Add($"fade=t=in:st=0:d={F(fade)}");
         if (edit.FadeOut) video.Add($"fade=t=out:st={F(Math.Max(0, outDuration - fade))}:d={F(fade)}");
         video.Add("format=yuv420p");
-        filters.Add($"[vc]{string.Join(',', video)}[vout]");
+        filters.Add($"[vl]{string.Join(',', video)}[vout]");
 
         var audio = new List<string> { "aresample=48000" };
         if (edit.FadeIn) audio.Add($"afade=t=in:st=0:d={F(fade)}");
         if (edit.FadeOut) audio.Add($"afade=t=out:st={F(Math.Max(0, outDuration - fade))}:d={F(fade)}");
-        filters.Add($"{(hasAudio ? "[ac]" : "[1:a]")}{string.Join(',', audio)}[aout]");
+        var gameAudio = hasAudio ? "[ac]" : "[1:a]";
+        if (musicInput is { } m)
+        {
+            // Game audio a bit lower under the music; the music loops and fades out with the clip.
+            filters.Add($"{gameAudio}{string.Join(',', audio)},volume=0.8[game]");
+            filters.Add($"[{m}:a]{MusicChain(export.MusicVolume, outDuration)}[music]");
+            filters.Add("[game][music]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]");
+        }
+        else
+        {
+            filters.Add($"{gameAudio}{string.Join(',', audio)}[aout]");
+        }
 
         var encoder = await encoders.BestAsync(export.Codec, cancellationToken);
         args.AddRange(["-filter_complex", string.Join(';', filters), "-map", "[vout]", "-map", "[aout]"]);
@@ -219,8 +266,8 @@ public sealed class FfmpegVideoProcessor(FfmpegRunner runner, EncoderCatalog enc
             "-movflags", "+faststart", "-t", F(outDuration), outputPath]);
 
         Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
-        logger.LogInformation("Exporting {Output}: {W}x{H}@{Fps} {Encoder} {Bitrate}kbps, {Pieces} piece(s), {Duration:0.0}s",
-            outputPath, width, height, fps, encoder, export.BitrateKbps, n, outDuration);
+        logger.LogInformation("Exporting {Output}: {W}x{H}@{Fps} {Encoder} {Bitrate}kbps, {Pieces} piece(s), {Duration:0.0}s, {Kills} kill(s), {Fast} fast-forward(s), music={Music}",
+            outputPath, width, height, fps, encoder, export.BitrateKbps, n, outDuration, timeline.KillTimes.Count, timeline.FastWindows.Count, musicInput is not null);
         await runner.RunAsync(args, outDuration, progress, cancellationToken);
     }
 
@@ -231,8 +278,9 @@ public sealed class FfmpegVideoProcessor(FfmpegRunner runner, EncoderCatalog enc
             null, null, cancellationToken);
     }
 
-    /// <summary>Joins several exported clips into one video (montage / fragmovie).</summary>
-    public async Task BuildMontageAsync(IReadOnlyList<string> clips, string outputPath, double transitionSeconds, IProgress<double>? progress, CancellationToken ct)
+    /// <summary>Joins several exported clips into one video (montage / fragmovie), optionally over background music.</summary>
+    public async Task BuildMontageAsync(IReadOnlyList<string> clips, string outputPath, double transitionSeconds, IProgress<double>? progress,
+        CancellationToken ct, string? musicPath = null, int musicVolume = 35)
     {
         var segments = new List<SegmentInput>();
         foreach (var clip in clips)
@@ -241,13 +289,59 @@ public sealed class FfmpegVideoProcessor(FfmpegRunner runner, EncoderCatalog enc
             segments.Add(new SegmentInput(clip, 0, info.HasAudio ? clip : null, 0, info.DurationSeconds));
         }
 
-        await BuildMasterAsync(segments, outputPath, transitionSeconds, progress, ct);
+        if (string.IsNullOrWhiteSpace(musicPath) || !File.Exists(musicPath))
+        {
+            await BuildMasterAsync(segments, outputPath, transitionSeconds, progress, ct);
+            return;
+        }
+
+        var joined = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(outputPath))!, $".{Path.GetFileNameWithoutExtension(outputPath)}.joined.mp4");
+        try
+        {
+            await BuildMasterAsync(segments, joined, transitionSeconds, new Progress<double>(p => progress?.Report(p * 0.85)), ct);
+            await MixMusicAsync(joined, musicPath, musicVolume, outputPath, new Progress<double>(p => progress?.Report(0.85 + p * 0.15)), ct);
+        }
+        finally
+        {
+            try { File.Delete(joined); } catch { /* ignore */ }
+        }
+    }
+
+    /// <summary>Lays background music under a finished video (the video stream is copied, not re-encoded).</summary>
+    public async Task MixMusicAsync(string videoPath, string musicPath, int musicVolume, string outputPath, IProgress<double>? progress, CancellationToken ct)
+    {
+        var info = await ProbeAsync(videoPath, ct);
+        var duration = info.DurationSeconds;
+        var game = info.HasAudio ? "[0:a]aresample=48000,volume=0.8[game];" : "";
+        var mix = info.HasAudio
+            ? "[game][music]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[aout]"
+            : "[music]anull[aout]";
+        string[] args =
+        [
+            "-i", videoPath, "-stream_loop", "-1", "-i", musicPath,
+            "-filter_complex", $"{game}[1:a]{MusicChain(musicVolume, duration)}[music];{mix}",
+            "-map", "0:v", "-map", "[aout]", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", "-t", F(duration), outputPath,
+        ];
+        logger.LogInformation("Adding music {Music} to {Video} ({Duration:0.0}s)", musicPath, videoPath, duration);
+        await runner.RunAsync(args, duration, progress, ct);
+    }
+
+    private static string MusicChain(int volumePercent, double duration) =>
+        $"aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,volume={F(Math.Clamp(volumePercent, 0, 200) / 100.0)}," +
+        $"atrim=duration={F(duration)},asetpts=PTS-STARTPTS,afade=t=in:st=0:d=0.5," +
+        $"afade=t=out:st={F(Math.Max(0, duration - 1.5))}:d={F(Math.Min(1.5, duration))}";
+
+    /// <summary>Silences parts of a segment's audio (volume filter with an enable expression).</summary>
+    private static string Mute(IReadOnlyList<TimeWindow>? windows)
+    {
+        if (windows is not { Count: > 0 }) return "";
+        return $",volume=volume=0:enable='{string.Join('+', windows.Select(w => $"between(t,{F(w.Start)},{F(w.End)})"))}'";
     }
 
     private static string Atempo(double speed) =>
         string.Join(',', EditPlanner.AtempoChain(speed).Select(s => $"atempo={F(s)}"));
 
-    private IEnumerable<string> Overlays(EditSettings edit, int height)
+    private IEnumerable<string> Overlays(EditSettings edit, int basis)
     {
         const string alpha = "'if(lt(t,0.3),0,if(lt(t,0.8),(t-0.3)/0.5,if(lt(t,4.2),1,if(lt(t,4.7),(4.7-t)/0.5,0))))'";
 
@@ -255,8 +349,8 @@ public sealed class FfmpegVideoProcessor(FfmpegRunner runner, EncoderCatalog enc
         {
             var file = WriteTextFile(edit.Title);
             if (FontFor(edit.Title) is not { } font) yield break;
-            yield return $"drawtext=fontfile='{EscapePath(font)}':textfile='{EscapePath(file)}':fontsize={height / 20}:fontcolor=white:" +
-                         $"box=1:boxcolor=black@0.45:boxborderw={height / 60}:x=(w-text_w)/2:y=h*0.08:alpha={alpha}";
+            yield return $"drawtext=fontfile='{EscapePath(font)}':textfile='{EscapePath(file)}':fontsize={basis / 20}:fontcolor=white:" +
+                         $"box=1:boxcolor=black@0.45:boxborderw={basis / 60}:x=(w-text_w)/2:y=h*0.08:alpha={alpha}";
         }
 
         var label = string.Join("  •  ", new[] { edit.PlayerLabel, edit.RoundLabel }.Where(s => !string.IsNullOrWhiteSpace(s)));
@@ -264,9 +358,50 @@ public sealed class FfmpegVideoProcessor(FfmpegRunner runner, EncoderCatalog enc
         {
             var file = WriteTextFile(label);
             if (FontFor(label) is not { } font) yield break;
-            yield return $"drawtext=fontfile='{EscapePath(font)}':textfile='{EscapePath(file)}':fontsize={height / 32}:fontcolor=white:" +
-                         $"box=1:boxcolor=black@0.45:boxborderw={height / 90}:x=w*0.04:y=h*0.86:alpha={alpha}";
+            yield return $"drawtext=fontfile='{EscapePath(font)}':textfile='{EscapePath(file)}':fontsize={basis / 32}:fontcolor=white:" +
+                         $"box=1:boxcolor=black@0.45:boxborderw={basis / 90}:x=w*0.04:y=h*0.86:alpha={alpha}";
         }
+    }
+
+    /// <summary>"» 4x" in the top-right corner while a fast-forward stretch plays.</summary>
+    private static IEnumerable<string> FastForwardBadges(IReadOnlyList<TimeWindow> windows, IReadOnlyList<EditPiece> pieces, int basis)
+    {
+        if (windows.Count == 0 || FontFor("x") is not { } font) yield break;
+        foreach (var group in windows.GroupBy(w => w.Speed))
+        {
+            var enable = string.Join('+', group.Select(w =>
+                $"between(t,{F(EditPlanner.MapToOutput(pieces, w.Start))},{F(EditPlanner.MapToOutput(pieces, w.End))})"));
+            var file = WriteTextFile($"» {group.Key.ToString("0.#", CultureInfo.InvariantCulture)}x");
+            yield return $"drawtext=fontfile='{EscapePath(font)}':textfile='{EscapePath(file)}':fontsize={basis / 16}:fontcolor=white:" +
+                         $"box=1:boxcolor=black@0.5:boxborderw={basis / 70}:x=w-text_w-{basis / 22}:y={basis / 22}:enable='{enable}'";
+        }
+    }
+
+    /// <summary>"1/3", "2/3", "3/3" as each of the player's kills happens (plays with 2+ kills).</summary>
+    private static IEnumerable<string> KillCounter(IReadOnlyList<double> killTimes, IReadOnlyList<EditPiece> pieces, double duration, int basis, VideoLayout layout)
+    {
+        if (killTimes.Count < 2 || FontFor("0") is not { } font) yield break;
+        var times = killTimes.Select(k => EditPlanner.MapToOutput(pieces, k)).Order().ToList();
+        var y = layout == VideoLayout.Vertical ? "h*0.74" : "h*0.64";
+        for (var i = 0; i < times.Count; i++)
+        {
+            var from = times[i];
+            var to = i + 1 < times.Count ? times[i + 1] : duration;
+            if (to <= from) continue;
+            var file = WriteTextFile($"{i + 1}/{times.Count}");
+            yield return $"drawtext=fontfile='{EscapePath(font)}':textfile='{EscapePath(file)}':fontsize={basis / 9}:fontcolor=white:" +
+                         $"borderw={Math.Max(2, basis / 160)}:bordercolor=0xF15A24:x=w-text_w-{basis / 18}:y={y}:" +
+                         $"alpha='min(1,(t-{F(from)})/0.12)':enable='between(t,{F(from)},{F(to)})'";
+        }
+    }
+
+    /// <summary>The user's nick or channel, small, bottom-right, for the whole clip.</summary>
+    private static string? Watermark(string text, int basis)
+    {
+        if (FontFor(text) is not { } font) return null;
+        var file = WriteTextFile(text);
+        return $"drawtext=fontfile='{EscapePath(font)}':textfile='{EscapePath(file)}':fontsize={basis / 34}:fontcolor=white@0.85:" +
+               $"shadowcolor=black@0.6:shadowx=2:shadowy=2:x=w-text_w-{basis / 30}:y=h-text_h-{basis / 30}";
     }
 
     /// <summary>

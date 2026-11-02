@@ -12,6 +12,7 @@ public partial class App
 {
     private AppHost? _host;
     private MainViewModel? _main;
+    private DesktopNotifier? _notifier;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
@@ -32,6 +33,21 @@ public partial class App
             var window = new MainWindow { DataContext = _main };
             MainWindow = window;
             window.Show();
+
+            _notifier = new DesktopNotifier();
+            _notifier.Clicked += () => Dispatcher.Invoke(() =>
+            {
+                if (window.WindowState == WindowState.Minimized) window.WindowState = WindowState.Normal;
+                window.Activate();
+                _main.NavigateCommand.Execute("Library");
+            });
+            _main.QueueFinished += (completed, failed) =>
+            {
+                if (!_host.Settings.Settings.NotifyWhenQueueDone) return;
+                _notifier.Show(Core.Brand.Name,
+                    failed > 0 ? L.F("notify.doneWithFailures", completed, failed) : L.F("notify.done", completed), failed > 0);
+            };
+            if (_host.Settings.Settings.CheckForUpdates) _ = _main.CheckForUpdatesAsync(manual: false);
 
             _main.Home.Refresh();
             _main.Queue.Sync();
@@ -84,6 +100,7 @@ public partial class App
     protected override async void OnExit(ExitEventArgs e)
     {
         _main?.Shutdown();
+        _notifier?.Dispose();
         if (_host is not null)
         {
             try

@@ -37,6 +37,7 @@ public sealed class RenderService(RenderQueue queue, SettingsStore settings, Med
             TickRate = match.Demo.TickRate,
             Export = export.Clone(),
             Segments = segments,
+            KillTicks = highlight.Kills.Where(k => k.AttackerSteamId == highlight.PlayerSteamId).Select(k => k.Tick).Order().ToList(),
             Edit = edit ?? DefaultEdit(highlight, export),
             Stage = L.T("stage.queued"),
         };
@@ -76,7 +77,7 @@ public sealed class RenderService(RenderQueue queue, SettingsStore settings, Med
     {
         var clips = jobs.Where(j => j.OutputPath is not null && File.Exists(j.OutputPath)).Select(j => j.OutputPath!).ToList();
         if (clips.Count < 2) throw new InvalidOperationException(L.T("error.montageTwoClips"));
-        await media.Processor.BuildMontageAsync(clips, outputPath, 0.4, progress, ct);
+        await media.Processor.BuildMontageAsync(clips, outputPath, 0.4, progress, ct, settings.Settings.MontageMusicPath, settings.Settings.MontageMusicVolume);
         return outputPath;
     }
 

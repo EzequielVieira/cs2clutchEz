@@ -35,10 +35,16 @@ The interface is available in **Português (Brasil)**, **English** and **Españo
 4. Independent detectors find and rank: First Blood, Double/Triple/Quad Kill, Ace, Headshot, No-scope, Wallbang,
    knife/Zeus/AWP kills, through smoke, blind, Clutch 1v1…1v5, Retake, clutch defuse, decisive round, kill streak,
    quick kills, high damage and utility damage.
-5. Tick the highlights and choose POV, resolution, FPS, codec, bitrate and how many seconds before/after.
+5. Tick the highlights and choose POV, resolution, FPS, codec, bitrate and how many seconds before/after, plus the
+   style: **fast-forward between plays** (2x/4x/8x) or cuts, **slow motion on each kill**, **vertical 9:16** for
+   TikTok/Reels/Shorts, **kill counter** (1/5 … 5/5), a **watermark** with your nick and **background music**.
 6. The queue opens CS2, seeks to the exact tick, sets and **verifies** the POV, records the window in real time and
    exports the MP4 (title, player and round overlay, fades and crossfades between cuts).
-7. Finished videos are listed in **Clips**: watch, open the folder, copy to share, or join several into a montage.
+7. Finished videos are listed in **Clips**: watch, open the folder, copy to share, or join several into a montage
+   (optionally over music). A Windows notification tells you when the queue is done.
+
+**Auto mode** does all of it for many matches at once: add demos (or "My CS2 matches") and it queues the best N plays
+of each one. The app also checks GitHub for new releases (Settings → Updates and notifications).
 
 ## Share codes
 
@@ -113,8 +119,10 @@ A demo is not a video: it is replay data that has to be played by CS2. What was 
 
 Pipeline for each highlight:
 
-1. The action ticks become segments (5/10/15/20/30 s before and 5/10/15/20 s after). Distant actions become separate
-   cuts joined with a crossfade.
+1. The action ticks become segments (5/10/15/20/30 s before and 5/10/15/20 s after). Distant actions are either
+   separate cuts joined with a crossfade, or — **fast-forward** — one continuous segment whose gaps are played with
+   `demo_timescale` (2x/4x/8x, up to 16x so a gap never takes more than ~6 s). The fast parts are recorded fast (so
+   they also render fast), their game audio is muted and a "» 4x" badge is shown.
 2. The app starts CS2 through Steam with `-condebug +exec cs2hg/boot`, in a borderless window at the capture
    resolution.
 3. The demo is hard-linked into `csgo/cs2hg/demos` and opened with `playdemo` from the console.
@@ -183,6 +191,8 @@ cs2clutchez-cli resolve   CSGO-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx      # only prints 
 cs2clutchez-cli matches                                            # CS2 matches with their codes
 cs2clutchez-cli analyze "C:\demos\match.dem" --player "PlayerName" --top 20 --lang en
 cs2clutchez-cli render  "C:\demos\match.dem.bz2" --rounds 3,5,8,12 --codec h265 --pov victim
+cs2clutchez-cli render  "C:\demos\match.dem" --top 3 --between ff --ff-speed 4 --slowmo-kills --vertical \
+                        --watermark "@mynick" --music song.mp3 --music-volume 35
 cs2clutchez-cli probe | queue | resume | install-ffmpeg | restore-config
 ```
 

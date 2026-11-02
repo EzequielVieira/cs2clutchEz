@@ -21,6 +21,17 @@
             <StackPanel>
                 <TextBlock Text="{l:Tr nav.clips}" Style="{StaticResource PageTitle}" />
                 <TextBlock Text="{Binding Summary}" Style="{StaticResource PageSubtitle}" />
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Text="{l:Tr clips.montageMusic}" Style="{StaticResource Muted}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding MusicName}" Margin="8,0,0,0" VerticalAlignment="Center" MaxWidth="260" TextTrimming="CharacterEllipsis" />
+                    <Button Style="{StaticResource GhostButton}" Content="{l:Tr common.browse}" Command="{Binding BrowseMusicCommand}" Margin="10,0,0,0" />
+                    <Button Style="{StaticResource IconButton}" Content="&#xE711;" Command="{Binding ClearMusicCommand}" ToolTip="{l:Tr music.remove}"
+                            Visibility="{Binding HasMusic, Converter={StaticResource BoolToVis}}" Margin="4,0,0,0" />
+                    <TextBlock Text="{l:Tr music.volume}" Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="14,0,8,0"
+                               Visibility="{Binding HasMusic, Converter={StaticResource BoolToVis}}" />
+                    <Slider Width="140" Minimum="5" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" Value="{Binding MusicVolume}" VerticalAlignment="Center"
+                            Visibility="{Binding HasMusic, Converter={StaticResource BoolToVis}}" />
+                </StackPanel>
                 <ProgressBar IsIndeterminate="True" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" Margin="0,8,0,0" Width="300" HorizontalAlignment="Left" />
             </StackPanel>
         </DockPanel>

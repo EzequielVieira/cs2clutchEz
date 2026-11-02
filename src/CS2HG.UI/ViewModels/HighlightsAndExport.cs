@@ -47,6 +47,21 @@ public static class Options
     ];
 
     public static readonly IReadOnlyList<int> FpsValues = [30, 60, 120];
+
+    /// <summary>Between plays: 0 = cut, otherwise the fast-forward speed.</summary>
+    public static readonly IReadOnlyList<Option<int>> BetweenPlays =
+    [
+        new(0, "between.cut"),
+        new(2, "between.ff2"),
+        new(4, "between.ff4"),
+        new(8, "between.ff8"),
+    ];
+
+    public static readonly IReadOnlyList<Option<VideoLayout>> Layouts =
+    [
+        new(VideoLayout.Landscape, "layout.landscape"),
+        new(VideoLayout.Vertical, "layout.vertical"),
+    ];
 }
 
 public sealed partial class HighlightItemViewModel : ObservableObject
@@ -221,7 +236,39 @@ public sealed partial class ExportViewModel : ObservableObject
         _addTitleOverlay = e.AddTitleOverlay;
         _fadeTransitions = e.FadeTransitions;
         _outputFolder = e.OutputFolder ?? main.Host.Settings.Settings.Paths.Highlights;
+        _between = Options.BetweenPlays.FirstOrDefault(b => e.BetweenPlays == Core.Settings.BetweenPlays.Cut ? b.Value == 0 : b.Value == e.FastForwardSpeed)
+                   ?? Options.BetweenPlays[2];
+        _slowMotionKills = e.SlowMotionKills;
+        _layout = Options.Layouts.First(l => l.Value == e.Layout);
+        _killCounter = e.KillCounter;
+        _watermark = e.Watermark ?? "";
+        _musicPath = e.MusicPath;
+        _musicVolume = e.MusicVolume;
     }
+
+    public IReadOnlyList<Option<int>> BetweenOptions => Options.BetweenPlays;
+    public IReadOnlyList<Option<VideoLayout>> Layouts => Options.Layouts;
+
+    [ObservableProperty] private Option<int> _between;
+    [ObservableProperty] private bool _slowMotionKills;
+    [ObservableProperty] private Option<VideoLayout> _layout;
+    [ObservableProperty] private bool _killCounter;
+    [ObservableProperty] private string _watermark;
+    [ObservableProperty, NotifyPropertyChangedFor(nameof(MusicName), nameof(HasMusic))] private string? _musicPath;
+    [ObservableProperty] private int _musicVolume;
+
+    public bool HasMusic => !string.IsNullOrWhiteSpace(MusicPath);
+    public string MusicName => HasMusic ? System.IO.Path.GetFileName(MusicPath)! : L.T("music.none");
+
+    [RelayCommand]
+    private void BrowseMusic()
+    {
+        var dialog = new OpenFileDialog { Title = L.T("music.dialog"), Filter = L.T("music.filter") };
+        if (dialog.ShowDialog() == true) MusicPath = dialog.FileName;
+    }
+
+    [RelayCommand]
+    private void ClearMusic() => MusicPath = null;
 
     public IReadOnlyList<Option<(int Width, int Height)>> Resolutions { get; } =
         ExportSettings.Resolutions.Select(r => new Option<(int, int)>((r.Width, r.Height), $"{r.Name} ({r.Width}×{r.Height})", false)).ToList();
@@ -279,6 +326,14 @@ public sealed partial class ExportViewModel : ObservableObject
         AddTitleOverlay = AddTitleOverlay,
         FadeTransitions = FadeTransitions,
         OutputFolder = OutputFolder,
+        BetweenPlays = Between.Value == 0 ? Core.Settings.BetweenPlays.Cut : Core.Settings.BetweenPlays.FastForward,
+        FastForwardSpeed = Between.Value == 0 ? _main.Host.Settings.Settings.Export.FastForwardSpeed : Between.Value,
+        SlowMotionKills = SlowMotionKills,
+        Layout = Layout.Value,
+        KillCounter = KillCounter,
+        Watermark = string.IsNullOrWhiteSpace(Watermark) ? null : Watermark.Trim(),
+        MusicPath = HasMusic ? MusicPath : null,
+        MusicVolume = MusicVolume,
     };
 
     [RelayCommand]

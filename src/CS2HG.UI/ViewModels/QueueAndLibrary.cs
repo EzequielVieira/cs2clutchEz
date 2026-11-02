@@ -207,9 +207,38 @@ public sealed partial class LibraryViewModel(MainViewModel main) : ObservableObj
 
     [ObservableProperty] private bool _isBusy;
     [ObservableProperty] private string _summary = "";
+    [ObservableProperty] private int _musicVolume = main.Host.Settings.Settings.MontageMusicVolume;
+
+    public bool HasMusic => !string.IsNullOrWhiteSpace(main.Host.Settings.Settings.MontageMusicPath);
+    public string MusicName => HasMusic ? Path.GetFileName(main.Host.Settings.Settings.MontageMusicPath)! : L.T("music.none");
+
+    partial void OnMusicVolumeChanged(int value)
+    {
+        main.Host.Settings.Settings.MontageMusicVolume = value;
+        main.Host.Settings.Save();
+    }
+
+    [RelayCommand]
+    private void BrowseMusic()
+    {
+        var dialog = new OpenFileDialog { Title = L.T("music.dialog"), Filter = L.T("music.filter") };
+        if (dialog.ShowDialog() == true) SetMusic(dialog.FileName);
+    }
+
+    [RelayCommand]
+    private void ClearMusic() => SetMusic(null);
+
+    private void SetMusic(string? path)
+    {
+        main.Host.Settings.Settings.MontageMusicPath = path;
+        main.Host.Settings.Save();
+        OnPropertyChanged(nameof(HasMusic));
+        OnPropertyChanged(nameof(MusicName));
+    }
 
     public void Refresh()
     {
+        OnPropertyChanged(nameof(MusicName));
         Clips.Clear();
         foreach (var job in main.Host.Queue.Jobs.Where(j => j.Status == RenderJobStatus.Completed).OrderByDescending(j => j.FinishedAt))
             Clips.Add(new JobItemViewModel(job));

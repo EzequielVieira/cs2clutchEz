@@ -82,6 +82,12 @@ public interface IDemoPlaybackController : IAsyncDisposable
 
     Task<long> PauseAsync(CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Changes the playback speed while the demo plays (demo_timescale), optionally switching the POV in the same
+    /// command; returns the Stopwatch timestamp at which the command was sent.
+    /// </summary>
+    Task<long> SetSpeedAsync(double speed, PovTarget? switchPov, CancellationToken cancellationToken);
+
     Task EndSessionAsync(bool closeGame, CancellationToken cancellationToken);
 }
 
@@ -113,7 +119,9 @@ public interface IGameRecorder
 
 public sealed record MediaInfo(double DurationSeconds, int Width, int Height, double Fps, string VideoCodec, bool HasAudio);
 
-public sealed record SegmentInput(string VideoPath, double VideoStart, string? AudioPath, double AudioStart, double Duration);
+/// <param name="MuteWindows">Parts of the segment (seconds from its start) whose game audio is silenced (fast-forward).</param>
+public sealed record SegmentInput(string VideoPath, double VideoStart, string? AudioPath, double AudioStart, double Duration,
+    IReadOnlyList<TimeWindow>? MuteWindows = null);
 
 public interface IVideoProcessor
 {
@@ -122,8 +130,12 @@ public interface IVideoProcessor
     /// <summary>Builds a single master clip from captured segments (cut + concat + audio mux), lossless-ish.</summary>
     Task BuildMasterAsync(IReadOnlyList<SegmentInput> segments, string outputPath, double transitionSeconds, IProgress<double>? progress, CancellationToken cancellationToken);
 
-    /// <summary>Final export with resolution/fps/codec/bitrate and user edits.</summary>
-    Task ExportAsync(string masterPath, string outputPath, ExportSettings export, EditSettings edit, IProgress<double>? progress, CancellationToken cancellationToken);
+    /// <summary>
+    /// Final export: resolution/fps/codec/bitrate, layout, overlays, music and edits. <paramref name="timeline"/>
+    /// places the kill counter, slow motion and fast-forward badge.
+    /// </summary>
+    Task ExportAsync(string masterPath, string outputPath, ExportSettings export, EditSettings edit, IProgress<double>? progress,
+        CancellationToken cancellationToken, ClipTimeline? timeline = null);
 
     Task CreateThumbnailAsync(string videoPath, double atSeconds, string outputPath, CancellationToken cancellationToken);
 }

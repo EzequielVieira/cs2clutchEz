@@ -16,6 +16,7 @@
         <DataTemplate DataType="{x:Type vm:QueueViewModel}"><v:QueueView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:LibraryViewModel}"><v:LibraryView /></DataTemplate>
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><v:SettingsView /></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AutoViewModel}"><v:AutoView /></DataTemplate>
     </Window.Resources>
 
     <Grid>
@@ -53,6 +54,9 @@
                     <RadioButton Style="{StaticResource NavButton}" Tag="&#xE78C;" Content="{l:Tr nav.export}" GroupName="nav"
                                  Command="{Binding NavigateCommand}" CommandParameter="Export"
                                  IsChecked="{Binding CurrentPageKey, Mode=OneWay, Converter={x:Static v:EqualsConverter.Instance}, ConverterParameter=Export}" />
+                    <RadioButton Style="{StaticResource NavButton}" Tag="&#xE945;" Content="{l:Tr nav.auto}" GroupName="nav"
+                                 Command="{Binding NavigateCommand}" CommandParameter="Auto"
+                                 IsChecked="{Binding CurrentPageKey, Mode=OneWay, Converter={x:Static v:EqualsConverter.Instance}, ConverterParameter=Auto}" />
                     <TextBlock Text="{l:Tr nav.sectionVideos}" Margin="24,16,0,6" FontSize="10" FontWeight="Bold" Foreground="#5E6675" />
                     <RadioButton Style="{StaticResource NavButton}" Tag="&#xE896;" Content="{l:Tr nav.queue}" GroupName="nav"
                                  Command="{Binding NavigateCommand}" CommandParameter="Queue"
@@ -76,10 +80,25 @@
 
         <!-- Content -->
         <Grid Grid.Column="1">
-            <ContentControl Content="{Binding CurrentPage}" Focusable="False" />
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- New version available -->
+            <Border Background="#2A2117" BorderBrush="#6B4A26" BorderThickness="0,0,0,1" Padding="20,9"
+                    Visibility="{Binding UpdateText, Converter={StaticResource BoolToVis}}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE711;" Command="{Binding DismissUpdateCommand}" Margin="8,0,0,0" ToolTip="{l:Tr update.dismiss}" />
+                    <Button DockPanel.Dock="Right" Style="{StaticResource AccentButton}" Content="{l:Tr update.download}" Command="{Binding OpenUpdateCommand}" Padding="14,4" />
+                    <TextBlock Text="{Binding UpdateText}" VerticalAlignment="Center" Foreground="{StaticResource TextBrush}" TextWrapping="Wrap" />
+                </DockPanel>
+            </Border>
+
+            <ContentControl Grid.Row="1" Content="{Binding CurrentPage}" Focusable="False" />
 
             <!-- Notification (InfoBar) -->
-            <Border VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,16,24,0" MaxWidth="560" Padding="14,10" CornerRadius="8"
+            <Border Grid.Row="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,16,24,0" MaxWidth="560" Padding="14,10" CornerRadius="8"
                     Visibility="{Binding Notification, Converter={StaticResource BoolToVis}}">
                 <Border.Style>
                     <Style TargetType="Border">

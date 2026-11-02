@@ -31,9 +31,12 @@ La interfaz está en **portugués (Brasil)**, **inglés** y **español** y cambi
 3. Elige al jugador y haz clic en **Buscar highlights**: aces, clutches 1v1…1v5, multi-kills, no-scopes,
    wallbangs, kills con cuchillo/Zeus/AWP, retakes, defuses decisivos, rondas decisivas, mucho daño…
 4. Marca los highlights, elige POV, resolución (720p–4K), FPS (30–120), códec (H.264/H.265), bitrate y segundos
-   antes/después.
+   antes/después, y el estilo: **acelerar entre jugadas** (2x/4x/8x) o cortar, **cámara lenta en cada kill**,
+   **vertical 9:16** (TikTok/Reels/Shorts), **contador de kills**, **marca de agua** con tu nick y **música de fondo**.
 5. La cola abre CS2, va al tick exacto, verifica el POV, graba la ventana en tiempo real y exporta el MP4. Al terminar
-   cierra CS2 y restaura tu configuración (video, convars, binds).
+   cierra CS2, restaura tu configuración (video, convars, binds) y te avisa con una notificación de Windows.
+
+El **modo automático** analiza varias partidas de una vez y pone en cola las mejores jugadas de cada una.
 
 ## Requisitos e instalación
 

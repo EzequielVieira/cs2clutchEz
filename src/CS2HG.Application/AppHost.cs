@@ -39,6 +39,8 @@ public sealed class AppHost : IAsyncDisposable
     public MediaToolkit Media => Services.GetRequiredService<MediaToolkit>();
     public Cs2PlaybackController Playback => Services.GetRequiredService<Cs2PlaybackController>();
     public SystemMonitor Monitor => Services.GetRequiredService<SystemMonitor>();
+    public UpdateService Updates => Services.GetRequiredService<UpdateService>();
+    public AutoModeService Auto => Services.GetRequiredService<AutoModeService>();
     public ILoggerFactory LoggerFactory => Services.GetRequiredService<ILoggerFactory>();
 
     public static async Task<AppHost> CreateAsync(SettingsStore? settingsStore = null)
@@ -71,6 +73,8 @@ public sealed class AppHost : IAsyncDisposable
         services.AddSingleton<RenderService>();
         services.AddSingleton<ShareCodeService>();
         services.AddSingleton<SystemMonitor>();
+        services.AddSingleton<UpdateService>();
+        services.AddSingleton<AutoModeService>();
 
         var provider = services.BuildServiceProvider();
         var host = new AppHost(provider);

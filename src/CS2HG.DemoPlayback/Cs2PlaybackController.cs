@@ -297,7 +297,7 @@ public sealed partial class Cs2PlaybackController(Cs2Settings settings, string b
             _demoLoaded = true;
             _loadedDemo = staged;
 
-            var setup = new List<string> { "demo_pause", "spec_show_xray 0", "r_show_build_info 0" };
+            var setup = new List<string> { "demo_pause", "demo_timescale 1", "spec_show_xray 0", "r_show_build_info 0" };
             if (!_demoUiHidden)
             {
                 setup.Add("demoui");
@@ -347,12 +347,8 @@ public sealed partial class Cs2PlaybackController(Cs2Settings settings, string b
                 return (true, "director");
             }
 
-            var commands = new List<string>();
             var name = target.Name;
-            if (!string.IsNullOrEmpty(name) && !name.Contains('"') && !name.Contains(';') && !name.Contains('\n'))
-                commands.Add($"spec_player \"{name}\"");
-            commands.Add($"spec_mode {(target.Mode == PovMode.ThirdPerson ? SpecModeThirdPerson : SpecModeFirstPerson)}");
-            await ExecAsync(commands, cancellationToken);
+            await ExecAsync(PovCommands(target), cancellationToken);
 
             if (_gsi is null || target.SteamId is not { } steamId) return (false, null);
             if (await _gsi.WaitForObservedAsync(steamId, TimeSpan.FromSeconds(1.5), cancellationToken))
@@ -394,16 +390,34 @@ public sealed partial class Cs2PlaybackController(Cs2Settings settings, string b
         }
     }
 
-    public async Task<long> ResumeAsync(CancellationToken cancellationToken) => await TimedExecAsync("demo_resume", cancellationToken);
+    private static List<string> PovCommands(PovTarget target)
+    {
+        if (target.Mode == PovMode.DirectorCamera) return [$"spec_mode {SpecModeDirector}"];
+        var commands = new List<string>();
+        var name = target.Name;
+        if (!string.IsNullOrEmpty(name) && !name.Contains('"') && !name.Contains(';') && !name.Contains('\n'))
+            commands.Add($"spec_player \"{name}\"");
+        commands.Add($"spec_mode {(target.Mode == PovMode.ThirdPerson ? SpecModeThirdPerson : SpecModeFirstPerson)}");
+        return commands;
+    }
 
-    public async Task<long> PauseAsync(CancellationToken cancellationToken) => await TimedExecAsync("demo_pause", cancellationToken);
+    public async Task<long> ResumeAsync(CancellationToken cancellationToken) => await TimedExecAsync(["demo_resume"], cancellationToken);
 
-    private async Task<long> TimedExecAsync(string command, CancellationToken ct)
+    public async Task<long> PauseAsync(CancellationToken cancellationToken) => await TimedExecAsync(["demo_pause", "demo_timescale 1"], cancellationToken);
+
+    public async Task<long> SetSpeedAsync(double speed, PovTarget? switchPov, CancellationToken cancellationToken)
+    {
+        var commands = new List<string> { $"demo_timescale {speed.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)}" };
+        if (switchPov is not null) commands.AddRange(PovCommands(switchPov));
+        return await TimedExecAsync(commands, cancellationToken);
+    }
+
+    private async Task<long> TimedExecAsync(IReadOnlyList<string> commands, CancellationToken ct)
     {
         await _gate.WaitAsync(ct);
         try
         {
-            return await ExecAsync([command], ct);
+            return await ExecAsync(commands, ct);
         }
         finally
         {
@@ -418,7 +432,7 @@ public sealed partial class Cs2PlaybackController(Cs2Settings settings, string b
         {
             if (_game is { HasExited: false } && _log is not null)
             {
-                var commands = new List<string> { "cl_drawhud 1", "cl_draw_only_deathnotices 0", "spec_show_xray 1", "r_show_build_info 1" };
+                var commands = new List<string> { "demo_timescale 1", "cl_drawhud 1", "cl_draw_only_deathnotices 0", "spec_show_xray 1", "r_show_build_info 1" };
                 if (closeGame || settings.CleanupBindsOnExit) commands.Add($"unbind {Cs2ConfigManager.CommandKeyName}");
                 if (closeGame) commands.Add("quit");
                 try

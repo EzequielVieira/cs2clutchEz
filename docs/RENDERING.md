@@ -72,3 +72,16 @@ fecha o jogo e restaura os arquivos. Um marcador garante a restauração mesmo a
 `trim → cortes → slow motion (setpts/atempo) → concat → fps → scale+pad → efeitos → textos (drawtext com fonte
 escolhida pelo alfabeto do texto) → fade` e encoder por disponibilidade: `h264_nvenc → h264_amf → h264_qsv →
 libx264` (ou HEVC equivalente, com `-tag:v hvc1`), bitrate VBR com `maxrate` 1,5× e `+faststart`.
+
+## Acelerar entre jogadas (1.1)
+
+- Com "Acelerar" na exportação, as jogadas de um highlight viram **um segmento contínuo**; os trechos sem ação entre
+  elas (`FastForwardRange`) são reproduzidos com `demo_timescale` 2/4/8 (até 16 para o trecho não passar de ~6 s).
+- Durante a gravação o app agenda `demo_timescale N` e `demo_timescale 1` pelo relógio (a demo anda N × tempo real
+  desde a última troca) e registra quando cada comando foi enviado. Como todos os comandos têm a mesma latência do
+  `demo_resume`, esse instante é a posição no vídeo útil: vira `CapturedSegment.Timeline` (tick ↔ segundo) e
+  `FastWindows`.
+- No master o áudio do jogo fica mudo nas `FastWindows`; na exportação aparece o selo "» Nx". O `MasterTimeline` usa a
+  linha do tempo medida para posicionar o contador de kills e a câmera lenta (que não é aplicada dentro de trechos
+  acelerados).
+- Nos modos de POV quem matou/vítima, a troca de jogador vai no mesmo comando que volta a velocidade para 1.

@@ -14,6 +14,19 @@ public sealed class AppSettings
     /// <summary>UI language (pt-BR, en, es). Null = Windows display language.</summary>
     public string? Language { get; set; }
     public List<string> RecentDemos { get; set; } = [];
+
+    /// <summary>Look for a newer release on GitHub when the app starts.</summary>
+    public bool CheckForUpdates { get; set; } = true;
+
+    /// <summary>Windows notification when the render queue finishes.</summary>
+    public bool NotifyWhenQueueDone { get; set; } = true;
+
+    /// <summary>Auto mode: how many of the best plays of each match are queued.</summary>
+    public int AutoTopPerMatch { get; set; } = 3;
+
+    /// <summary>Background music for montages (null = none) and its volume in percent.</summary>
+    public string? MontageMusicPath { get; set; }
+    public int MontageMusicVolume { get; set; } = 35;
 }
 
 public sealed class PathSettings
@@ -126,6 +139,24 @@ public enum VideoCodec
     H265,
 }
 
+/// <summary>What the clip shows between two plays that are far apart.</summary>
+public enum BetweenPlays
+{
+    /// <summary>Jump cut with a crossfade.</summary>
+    Cut,
+
+    /// <summary>The demo keeps playing at a higher speed (recorded fast with demo_timescale).</summary>
+    FastForward,
+}
+
+public enum VideoLayout
+{
+    Landscape,
+
+    /// <summary>9:16 for TikTok / Reels / Shorts: the game centred over a blurred copy of itself.</summary>
+    Vertical,
+}
+
 public sealed class ExportSettings
 {
     public int SecondsBefore { get; set; } = 5;
@@ -143,7 +174,32 @@ public sealed class ExportSettings
     public bool FadeTransitions { get; set; } = true;
     public string? OutputFolder { get; set; }
 
+    public BetweenPlays BetweenPlays { get; set; } = BetweenPlays.FastForward;
+
+    /// <summary>Base fast-forward speed; long gaps go faster so they never take more than a few seconds.</summary>
+    public int FastForwardSpeed { get; set; } = 4;
+
+    /// <summary>Each of the player's kills plays in slow motion for about a second.</summary>
+    public bool SlowMotionKills { get; set; }
+
+    public VideoLayout Layout { get; set; } = VideoLayout.Landscape;
+
+    /// <summary>"2/5"-style counter shown as each kill happens (plays with 2+ kills).</summary>
+    public bool KillCounter { get; set; } = true;
+
+    /// <summary>Text (nick, channel) shown in a corner for the whole clip; null = none.</summary>
+    public string? Watermark { get; set; }
+
+    /// <summary>Background music file (null = none) and its volume in percent.</summary>
+    public string? MusicPath { get; set; }
+    public int MusicVolume { get; set; } = 35;
+
     public static readonly int[] AllowedSecondsBefore = [5, 10, 15, 20, 30];
+    public static readonly int[] FastForwardSpeeds = [2, 4, 8];
+
+    /// <summary>Fast-forward stretches are sped up beyond the base speed so they last at most this long.</summary>
+    public const double MaxFastForwardSeconds = 6;
+    public const int MaxFastForwardSpeed = 16;
     public static readonly int[] AllowedSecondsAfter = [5, 10, 15, 20];
 
     public static readonly (string Name, int Width, int Height)[] Resolutions =

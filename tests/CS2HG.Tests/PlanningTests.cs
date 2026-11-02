@@ -59,7 +59,7 @@ public class PlanningTests
             .Kill(Ct[0], T[0], 1).Kill(Ct[0], T[1], 60).Build();
         var h = new HighlightAnalyzer(HighlightAnalyzer.DefaultDetectors()).Analyze(m, Ct[0], new DetectionSettings(), new ScoreSettings()).Single();
 
-        var export = new ExportSettings { SecondsBefore = 10, SecondsAfter = 5, Pov = PovMode.Victim };
+        var export = new ExportSettings { SecondsBefore = 10, SecondsAfter = 5, Pov = PovMode.Victim, BetweenPlays = BetweenPlays.Cut };
         var plan = ClipPlanner.Plan(h, m, export, new DetectionSettings { SegmentMergeGapSeconds = 8 });
 
         Assert.Equal(2, plan.Count);
