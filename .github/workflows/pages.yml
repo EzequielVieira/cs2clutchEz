@@ -3,6 +3,7 @@ name: Website
 on:
   push:
     branches: [main]
+    # The site, the app version (in the pages' structured data) or this workflow changed.
     paths: ['website/**', 'Directory.Build.props', '.github/workflows/pages.yml']
   workflow_dispatch:
 
