@@ -76,6 +76,7 @@
   var form = document.getElementById("share-form");
   var input = document.getElementById("share-code");
   var hint = document.getElementById("share-hint");
+  if (!form || !input || !hint) return; // pages without the share-code box (the guide)
 
   var preset = params.get("code") || decodeURIComponent(location.hash.slice(1));
   var presetMatch = preset && preset.match(CODE);

@@ -1,0 +1,81 @@
+    <article class="guide">
+      <div class="wrap guide-wrap">
+        <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{{home}}">cs2clutchEz</a> <span aria-hidden="true">›</span> <span>{{t:guide.title}}</span></nav>
+        <h1>{{t:guide.title}}</h1>
+        <p class="guide-lead">A Counter-Strike 2 demo is not a video: it is a recording of the match data that only the game itself can play back. To get an MP4 of that clutch or ace you have to open the demo in CS2, find the moment, pick the camera and record the screen. This guide shows the automatic way, with cs2clutchEz (free and open source), and how to do it all by hand.</p>
+
+        <nav class="toc" aria-label="In this guide">
+          <strong>In this guide</strong>
+          <ol>
+            <li><a href="#get-the-demo">Get the match demo</a></li>
+            <li><a href="#install">Install cs2clutchEz</a></li>
+            <li><a href="#import">Import the demo or paste the code</a></li>
+            <li><a href="#highlights">Pick the player and the highlights</a></li>
+            <li><a href="#export">Set up the video</a></li>
+            <li><a href="#render">Make the videos</a></li>
+            <li><a href="#manual">Doing it by hand</a></li>
+            <li><a href="#problems">Common problems</a></li>
+          </ol>
+        </nav>
+
+        <h2 id="get-the-demo" data-step>1. Get the match demo</h2>
+        <p>Where the demo comes from depends on where you played:</p>
+        <ul>
+          <li><strong>Matchmaking and Premier:</strong> in CS2, open <strong>Watch → Your Matches</strong> and download the match. The game saves the file in the <code>game\csgo\replays</code> folder of the CS2 installation. Or copy the match <strong>share code</strong> (<code>CSGO-xxxxx-…</code>): cs2clutchEz downloads the demo from it by itself. Valve keeps these demos for about 30 days.</li>
+          <li><strong>FACEIT and Gamers Club:</strong> download the demo from the match page on the platform. If it comes compressed (.zip, .rar, .gz…), extract the <code>.dem</code> file — cs2clutchEz opens <code>.dem</code> and <code>.dem.bz2</code>.</li>
+          <li><strong>HLTV:</strong> on the match page, download the (GOTV) demo and extract the <code>.dem</code> of the map you want from the archive.</li>
+        </ul>
+
+        <h2 id="install" data-step>2. Install cs2clutchEz</h2>
+        <p>Get the installer (MSI) or the portable version from the <a href="https://github.com/EzequielVieira/cs2clutchEz/releases/latest" rel="noopener">downloads page</a>. It needs 64-bit Windows 10 (version 2004 or newer) or 11 and Counter-Strike 2 installed through Steam. FFmpeg, which records and assembles the videos, is included. An NVIDIA, AMD or Intel graphics card makes exporting faster but is not required.</p>
+
+        <h2 id="import" data-step>3. Import the demo or paste the code</h2>
+        <p>Open cs2clutchEz and drop the demo file on the window, use <strong>Import demo</strong>, or paste the share code on the Home screen (Ctrl+V on any screen works too). Matches CS2 already downloaded show up under <strong>Your CS2 matches</strong>, with their code ready. To download by code, keep Steam open and CS2 closed.</p>
+        <p>The analysis reads the demo without opening the game and shows the score, the rounds and every player's stats.</p>
+
+        <h2 id="highlights" data-step>4. Pick the player and the highlights</h2>
+        <p>Select the player (your Steam account's is suggested) and click <strong>Find highlights</strong>. The app looks for aces, 1v1 to 1v5 clutches, multi-kills, no-scopes, wallbangs, knife and Zeus kills, retakes, clutch defuses and the rounds that decided the match, and sorts everything by the best plays. Tick the ones you want as videos.</p>
+
+        <h2 id="export" data-step>5. Set up the video</h2>
+        <ul>
+          <li><strong>Resolution and FPS:</strong> 720p to 4K, 30, 60 or 120 FPS, in H.264 or H.265.</li>
+          <li><strong>Between plays:</strong> fast-forward 2x, 4x or 8x — the part without action plays fast instead of being cut — or cut with a transition.</li>
+          <li><strong>Camera (POV):</strong> the player, the killer, the victim, another player, third person or CS2's director camera. The HUD can show only the kill feed, everything or nothing.</li>
+          <li><strong>Style:</strong> slow motion on each kill, a kill counter (1/5, 2/5…), your nick as a watermark and background music.</li>
+          <li><strong>Format:</strong> landscape 16:9 or vertical 9:16 for TikTok, Reels and Shorts.</li>
+        </ul>
+
+        <h2 id="render" data-step>6. Make the videos</h2>
+        <p>Click <strong>Make videos</strong>. The queue opens CS2 by itself, takes the demo to each moment, sets the camera and records the window with the game audio. Recording happens in real time — a 15-second clip takes about 15 seconds, and fast-forwarded parts go quicker — so don't use the mouse or keyboard while the queue runs. At the end the app closes CS2, restores your video settings and binds and shows a Windows notification.</p>
+        <p>The MP4s are saved in <code>Documents\cs2clutchEz\Highlights</code>, split by player, match and category. On the <strong>Clips</strong> screen you can watch them, copy them to share or join several into a montage with music. For many matches at once, use <strong>Auto mode</strong>: it analyses each demo and queues the best plays.</p>
+
+        <h2 id="manual">Doing it by hand (without cs2clutchEz)</h2>
+        <p>If you'd rather record it yourself, you can use the CS2 console and a screen recorder such as OBS:</p>
+        <ol>
+          <li>Enable the developer console in the game settings.</li>
+          <li>Put the demo in the CS2 <code>game\csgo</code> folder and type <code>playdemo demo_name</code> in the console (without <code>.dem</code>). For demos the game downloaded: <code>playdemo replays/demo_name</code>.</li>
+          <li><kbd>Shift</kbd>+<kbd>F2</kbd> opens the demo controls (pause, speed, timeline). <code>demo_gototick 12345</code> jumps to an exact tick and <code>demo_timescale 4</code> speeds it up.</li>
+          <li><code>spec_player "nick"</code> switches to that player's view and <code>cl_draw_only_deathnotices 1</code> leaves only the kill feed on screen.</li>
+          <li>Record with OBS and trim the video in an editor.</li>
+        </ol>
+        <p>It works, but you find every play in the demo, set the camera and trim the videos yourself — exactly the work cs2clutchEz does for you.</p>
+
+        <h2 id="problems">Common problems</h2>
+        <ul>
+          <li><strong>"The demo is no longer on Valve's servers":</strong> the match is older than about 30 days and its demo can no longer be downloaded.</li>
+          <li><strong>"Close CS2 before looking up matches by share code":</strong> the app uses the game's own connection to Valve; close CS2 and try again.</li>
+          <li><strong>CS2 was already open:</strong> the app has to start the game in recording mode and offers to restart it.</li>
+          <li><strong>Other programs' sounds in the video:</strong> the recorded audio is Windows' default device; close music and calls before recording.</li>
+          <li><strong>CS:GO demo:</strong> only Counter-Strike 2 demos are supported.</li>
+        </ul>
+
+        <aside class="guide-cta">
+          <p class="guide-cta-title">Ready to try it?</p>
+          <p>cs2clutchEz is free, open source and has no ads.</p>
+          <div class="cta">
+            <a class="btn btn-primary" href="https://github.com/EzequielVieira/cs2clutchEz/releases/latest" rel="noopener">{{t:hero.download}}</a>
+            <a class="btn btn-ghost" href="{{home}}">cs2clutchEz</a>
+          </div>
+        </aside>
+      </div>
+    </article>

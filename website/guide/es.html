@@ -1,0 +1,81 @@
+    <article class="guide">
+      <div class="wrap guide-wrap">
+        <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{{home}}">cs2clutchEz</a> <span aria-hidden="true">›</span> <span>{{t:guide.title}}</span></nav>
+        <h1>{{t:guide.title}}</h1>
+        <p class="guide-lead">Una demo de Counter-Strike 2 no es un video: es la grabación de los datos de la partida, que solo el propio juego puede reproducir. Para tener un MP4 de ese clutch o ace hay que abrir la demo en CS2, encontrar el momento, elegir la cámara y grabar la pantalla. Esta guía muestra el camino automático, con cs2clutchEz (gratis y de código abierto), y también cómo hacerlo todo a mano.</p>
+
+        <nav class="toc" aria-label="En esta guía">
+          <strong>En esta guía</strong>
+          <ol>
+            <li><a href="#descargar-la-demo">Descarga la demo de la partida</a></li>
+            <li><a href="#instalar">Instala cs2clutchEz</a></li>
+            <li><a href="#importar">Importa la demo o pega el código</a></li>
+            <li><a href="#highlights">Elige al jugador y los highlights</a></li>
+            <li><a href="#exportacion">Ajusta el video</a></li>
+            <li><a href="#generar">Genera los videos</a></li>
+            <li><a href="#manual">Cómo hacerlo a mano</a></li>
+            <li><a href="#problemas">Problemas comunes</a></li>
+          </ol>
+        </nav>
+
+        <h2 id="descargar-la-demo" data-step>1. Descarga la demo de la partida</h2>
+        <p>De dónde sale la demo depende de dónde jugaste:</p>
+        <ul>
+          <li><strong>Matchmaking y Premier:</strong> en CS2, abre <strong>Ver → Tus partidas</strong> y descarga la partida. El juego guarda el archivo en la carpeta <code>game\csgo\replays</code> de la instalación de CS2. O copia el <strong>código para compartir</strong> de la partida (<code>CSGO-xxxxx-…</code>): cs2clutchEz descarga la demo a partir de él por sí solo. Valve guarda estas demos unos 30 días.</li>
+          <li><strong>FACEIT y Gamers Club:</strong> descarga la demo en la página de la partida, en la propia plataforma. Si viene comprimida (.zip, .rar, .gz…), extrae el archivo <code>.dem</code> — cs2clutchEz abre <code>.dem</code> y <code>.dem.bz2</code>.</li>
+          <li><strong>HLTV:</strong> en la página de la partida, descarga la demo (GOTV) y extrae del archivo comprimido el <code>.dem</code> del mapa que quieras.</li>
+        </ul>
+
+        <h2 id="instalar" data-step>2. Instala cs2clutchEz</h2>
+        <p>Descarga el instalador (MSI) o la versión portátil en la <a href="https://github.com/EzequielVieira/cs2clutchEz/releases/latest" rel="noopener">página de descargas</a>. Necesita Windows 10 (versión 2004 o posterior) u 11 de 64 bits y Counter-Strike 2 instalado con Steam. FFmpeg, que graba y monta los videos, ya viene incluido. Una tarjeta gráfica NVIDIA, AMD o Intel hace la exportación más rápida, pero no es obligatoria.</p>
+
+        <h2 id="importar" data-step>3. Importa la demo o pega el código</h2>
+        <p>Abre cs2clutchEz y arrastra el archivo de la demo a la ventana, usa <strong>Importar demo</strong> o pega el código para compartir en la pantalla Inicio (Ctrl+V en cualquier pantalla también funciona). Las partidas que CS2 ya descargó aparecen en <strong>Tus partidas en CS2</strong>, con su código listo. Para descargar por código, deja Steam abierto y CS2 cerrado.</p>
+        <p>El análisis lee la demo sin abrir el juego y muestra el marcador, las rondas y las estadísticas de cada jugador.</p>
+
+        <h2 id="highlights" data-step>4. Elige al jugador y los highlights</h2>
+        <p>Selecciona al jugador (el de tu cuenta de Steam aparece sugerido) y haz clic en <strong>Buscar highlights</strong>. La app busca aces, clutches de 1v1 a 1v5, multi-kills, no-scopes, wallbangs, kills con cuchillo y Zeus, retakes, defuses decisivos y las rondas que decidieron la partida, y ordena todo por las mejores jugadas. Marca las que quieras convertir en video.</p>
+
+        <h2 id="exportacion" data-step>5. Ajusta el video</h2>
+        <ul>
+          <li><strong>Resolución y FPS:</strong> de 720p a 4K, 30, 60 o 120 FPS, en H.264 o H.265.</li>
+          <li><strong>Entre una jugada y otra:</strong> acelerar 2x, 4x u 8x — el tramo sin acción pasa rápido en lugar de cortarse — o cortar con una transición.</li>
+          <li><strong>Cámara (POV):</strong> del jugador, de quien mató, de la víctima, de otro jugador, en tercera persona o la cámara dirigida de CS2. El HUD puede mostrar solo el killfeed, todo o nada.</li>
+          <li><strong>Estilo:</strong> cámara lenta en cada kill, contador de kills (1/5, 2/5…), tu nick como marca de agua y música de fondo.</li>
+          <li><strong>Formato:</strong> horizontal 16:9 o vertical 9:16 para TikTok, Reels y Shorts.</li>
+        </ul>
+
+        <h2 id="generar" data-step>6. Genera los videos</h2>
+        <p>Haz clic en <strong>Generar videos</strong>. La cola abre CS2 sola, lleva la demo a cada momento, coloca la cámara y graba la ventana con el audio del juego. La grabación es en tiempo real — un clip de 15 segundos tarda unos 15 segundos, y los tramos acelerados van más rápido —, así que no uses el ratón ni el teclado mientras la cola trabaja. Al final la app cierra CS2, restaura tu configuración de video y tus binds y muestra una notificación de Windows.</p>
+        <p>Los MP4 se guardan en <code>Documentos\cs2clutchEz\Highlights</code>, separados por jugador, partida y categoría. En la pantalla <strong>Clips</strong> puedes verlos, copiarlos para compartir o unir varios en un montaje con música. Para varias partidas a la vez, usa el <strong>Modo automático</strong>: analiza cada demo y pone en cola las mejores jugadas.</p>
+
+        <h2 id="manual">Cómo hacerlo a mano (sin cs2clutchEz)</h2>
+        <p>Si prefieres grabarlo tú, puedes usar la consola de CS2 y un grabador de pantalla como OBS:</p>
+        <ol>
+          <li>Activa la consola de desarrollador en la configuración del juego.</li>
+          <li>Pon la demo en la carpeta <code>game\csgo</code> de CS2 y escribe <code>playdemo nombre_de_la_demo</code> en la consola (sin el <code>.dem</code>). Para las que descargó el juego: <code>playdemo replays/nombre_de_la_demo</code>.</li>
+          <li><kbd>Shift</kbd>+<kbd>F2</kbd> abre los controles de la demo (pausa, velocidad, línea de tiempo). <code>demo_gototick 12345</code> salta a un tick exacto y <code>demo_timescale 4</code> la acelera.</li>
+          <li><code>spec_player "nick"</code> cambia a la vista de ese jugador y <code>cl_draw_only_deathnotices 1</code> deja solo el killfeed en pantalla.</li>
+          <li>Graba con OBS y recorta el video en un editor.</li>
+        </ol>
+        <p>Funciona, pero eres tú quien busca cada jugada en la demo, coloca la cámara y recorta los videos — justo el trabajo que cs2clutchEz hace solo.</p>
+
+        <h2 id="problemas">Problemas comunes</h2>
+        <ul>
+          <li><strong>"La demo ya no está en los servidores de Valve":</strong> la partida tiene más de unos 30 días y su demo ya no se puede descargar.</li>
+          <li><strong>"Cierra CS2 antes de buscar partidas por código":</strong> la app usa la misma conexión del juego con Valve; cierra CS2 e inténtalo de nuevo.</li>
+          <li><strong>CS2 ya estaba abierto:</strong> la app tiene que abrir el juego en modo de grabación y ofrece reiniciarlo.</li>
+          <li><strong>Sonidos de otros programas en el video:</strong> el audio grabado es el del dispositivo predeterminado de Windows; cierra música y llamadas antes de grabar.</li>
+          <li><strong>Demo de CS:GO:</strong> solo se admiten demos de Counter-Strike 2.</li>
+        </ul>
+
+        <aside class="guide-cta">
+          <p class="guide-cta-title">¿Listo para probarlo?</p>
+          <p>cs2clutchEz es gratis, de código abierto y no tiene anuncios.</p>
+          <div class="cta">
+            <a class="btn btn-primary" href="https://github.com/EzequielVieira/cs2clutchEz/releases/latest" rel="noopener">{{t:hero.download}}</a>
+            <a class="btn btn-ghost" href="{{home}}">cs2clutchEz</a>
+          </div>
+        </aside>
+      </div>
+    </article>
