@@ -47,10 +47,18 @@ The app's texts live in `src/CS2HG.Core/Localization/<language>.json` — a flat
 - Keep format specifiers (`{0:0.0}`, `{1:P0}`) as they are; numbers are formatted with the selected language's culture.
 - To add a language: add `<code>.json` with all keys, register it in `Localizer.Languages`
   (`src/CS2HG.Core/Localization/Localizer.cs`) and in `Localizer.Normalize`, and translate the website
-  (`website/assets/app.js`, `TEXT` and `META`).
+  (add `website/i18n/<code>.json` and the language to the list at the top of `website/build.ps1`).
 
-The website keeps Portuguese in `website/index.html` (also the no-JavaScript fallback) and English/Spanish in
-`website/assets/app.js`.
+## Website
+
+`website/build.ps1` turns `website/template.html` and `website/i18n/<language>.json` into one static page per
+language (`/` Portuguese, `/en/`, `/es/`) with its own title, description, canonical and hreflang links,
+structured data (SoftwareApplication + FAQPage), plus `sitemap.xml` and `robots.txt`, in `website/_site`. The FAQ is
+built from the `qN`/`aN` keys. The Pages workflow runs the same script on every push to `website/`.
+
+```powershell
+./website/build.ps1      # then serve website/_site with any static file server
+```
 
 ## Pull requests
 

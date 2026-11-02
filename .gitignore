@@ -9,3 +9,4 @@ TestResults/
 tools/ffmpeg/*.exe
 tools/ffmpeg/*.dll
 *.trx
+website/_site/
