@@ -1,5 +1,5 @@
 <#
-  Builds, tests and packages cs2clutchEz (cs2clutch.ez.com.br).
+  Builds, tests and packages cs2clutchEz (cs2clutch.ez.api.br).
     ./build.ps1                 # build + tests + dist/app + portable zip + MSI
     ./build.ps1 -SkipTests
     ./build.ps1 -SkipInstaller

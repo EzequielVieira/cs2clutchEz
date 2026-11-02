@@ -4,7 +4,7 @@ namespace CS2HG.Core;
 public static class Brand
 {
     public const string Name = "cs2clutchEz";
-    public const string Domain = "cs2clutch.ez.com.br";
+    public const string Domain = "cs2clutch.ez.api.br";
     public const string Website = "https://" + Domain;
     public const string GitHubUrl = "https://github.com/EzequielVieira/cs2clutchEz";
     public const string ReleasesUrl = GitHubUrl + "/releases/latest";

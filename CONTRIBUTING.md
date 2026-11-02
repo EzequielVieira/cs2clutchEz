@@ -33,7 +33,7 @@ dotnet run --project src/CS2HG.UI
 | `src/CS2HG.Application` | services wiring everything together |
 | `src/CS2HG.UI` | WPF app (MVVM) |
 | `src/CS2HG.Cli` | `cs2clutchez-cli` |
-| `website/` | static site published to GitHub Pages (cs2clutch.ez.com.br) |
+| `website/` | static site published to GitHub Pages (cs2clutch.ez.api.br) |
 
 More in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/RENDERING.md](docs/RENDERING.md).
 

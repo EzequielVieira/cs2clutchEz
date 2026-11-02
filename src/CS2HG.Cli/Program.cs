@@ -66,7 +66,7 @@ static int Fail(string message)
 static void PrintHelp()
 {
     Console.WriteLine("""
-        cs2clutchez-cli — cs2clutchEz • cs2clutch.ez.com.br
+        cs2clutchez-cli — cs2clutchEz • cs2clutch.ez.api.br
 
           cs2clutchez-cli probe                              Checks CS2, FFmpeg, window capture and encoders
           cs2clutchez-cli analyze <demo> [--player <name|steamid|all>] [--top N]

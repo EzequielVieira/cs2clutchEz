@@ -13,7 +13,7 @@
 
     <Icon Id="AppIcon" SourceFile="$(AssetsDir)\app.ico" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon" />
-    <Property Id="ARPURLINFOABOUT" Value="https://cs2clutch.ez.com.br" />
+    <Property Id="ARPURLINFOABOUT" Value="https://cs2clutch.ez.api.br" />
     <Property Id="ARPHELPLINK" Value="https://github.com/EzequielVieira/cs2clutchEz" />
 
     <StandardDirectory Id="ProgramFiles64Folder">
@@ -54,7 +54,7 @@
       <Shortcut Id="AppDesktop" Name="cs2clutchEz" Target="[INSTALLFOLDER]cs2clutchEz.exe" WorkingDirectory="INSTALLFOLDER" Icon="AppIcon" />
       <RegistryValue Root="HKLM" Key="Software\cs2clutchEz" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
     </Component>
-    <!-- cs2clutchez://CSGO-xxxxx-... links (e.g. from cs2clutch.ez.com.br) open the match in the app. -->
+    <!-- cs2clutchez://CSGO-xxxxx-... links (e.g. from cs2clutch.ez.api.br) open the match in the app. -->
     <Component Id="UrlProtocol" Directory="INSTALLFOLDER" Guid="B7E0C2A9-5F41-4D3B-9C86-1A2F7D4E6B05">
       <RegistryKey Root="HKCR" Key="cs2clutchez">
         <RegistryValue Type="string" Value="URL:cs2clutchEz" KeyPath="yes" />

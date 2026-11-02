@@ -7,7 +7,7 @@
 
 <p align="center">
   <a href="README.md">English</a> · <b>Português</b> · <a href="README.es.md">Español</a><br>
-  <a href="https://cs2clutch.ez.com.br">cs2clutch.ez.com.br</a> ·
+  <a href="https://cs2clutch.ez.api.br">cs2clutch.ez.api.br</a> ·
   <a href="https://github.com/EzequielVieira/cs2clutchEz/releases/latest">Download</a> ·
   <a href="LICENSE">Licença MIT</a>
 </p>

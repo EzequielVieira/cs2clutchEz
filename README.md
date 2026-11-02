@@ -7,7 +7,7 @@
 
 <p align="center">
   <b>English</b> · <a href="README.pt-BR.md">Português</a> · <a href="README.es.md">Español</a><br>
-  <a href="https://cs2clutch.ez.com.br">cs2clutch.ez.com.br</a> ·
+  <a href="https://cs2clutch.ez.api.br">cs2clutch.ez.api.br</a> ·
   <a href="https://github.com/EzequielVieira/cs2clutchEz/releases/latest">Download</a> ·
   <a href="LICENSE">MIT license</a>
 </p>
@@ -96,7 +96,7 @@ With the app installed, any page can open a match:
 <a href="cs2clutchez://CSGO-xxxxx-xxxxx-xxxxx-xxxxx-xxxxx">Open in cs2clutchEz</a>
 ```
 
-The website also accepts `https://cs2clutch.ez.com.br/?code=CSGO-...` to prefill its share-code box.
+The website also accepts `https://cs2clutch.ez.api.br/?code=CSGO-...` to prefill its share-code box.
 
 ## How rendering works (and why)
 
