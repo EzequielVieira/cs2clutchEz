@@ -1,6 +1,6 @@
 <Project Sdk="WixToolset.Sdk/5.0.2">
   <PropertyGroup>
-    <OutputName>cs2clutchEz-1.0.0-x64</OutputName>
+    <OutputName>cs2clutchEz-1.0.1-x64</OutputName>
     <InstallerPlatform>x64</InstallerPlatform>
     <AppDir Condition="'$(AppDir)' == ''">$(MSBuildThisFileDirectory)..\dist\app</AppDir>
     <DefineConstants>AppDir=$(AppDir);AssetsDir=$(MSBuildThisFileDirectory)..\src\CS2HG.UI\Assets</DefineConstants>

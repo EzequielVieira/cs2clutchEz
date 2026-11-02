@@ -14,7 +14,7 @@ $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
 $dist = Join-Path $root 'dist'
 $app = Join-Path $dist 'app'
-$version = '1.0.0'
+$version = '1.0.1'
 
 function Step($text) { Write-Host "`n==> $text" -ForegroundColor Cyan }
 function Run($exe, [string[]]$arguments) {

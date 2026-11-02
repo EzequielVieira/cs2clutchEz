@@ -2,7 +2,7 @@
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <Package Name="cs2clutchEz"
            Manufacturer="cs2clutchEz"
-           Version="1.0.0.0"
+           Version="1.0.1.0"
            UpgradeCode="6F2B8C7E-3D4A-4E8B-9B61-2A7C0E5D9F13"
            Scope="perMachine"
            Language="1046"
